@@ -1,6 +1,6 @@
 import { SCHEMA, snake, rec } from './storage.js';
-const SUPABASE_URL = 'https://abdliioyzkylccfylils.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_g6l6_QmwE4Tj85_KF_XHfQ_I4gFlY_n';
+const SUPABASE_URL = 'https://xtkdvbtfwywrepkvskth.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_OnunHnBQLHTblyjZqdyAQw_xi_yCWJj';
 const AUTH_KEY = 'psi.auth.v1';
 const META_KEY = 'psi.sync.v1';
 const CHUNK = 100;
