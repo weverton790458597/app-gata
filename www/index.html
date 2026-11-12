@@ -8,13 +8,11 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Foco</title>
+  <title>Consultório</title>
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Sprite de ícones (SVG inline, funciona 100% offline) -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
       <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
@@ -40,143 +38,86 @@
       <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
       <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1Z"/></symbol>
       <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     </defs>
   </svg>
-
-  <div id="app" data-screen="tasks">
-
-    <!-- Cabeçalho (telas internas) -->
+  <div id="app" data-screen="agenda">
     <header class="topbar">
-      <div>
-        <h1 id="screen-title">Tarefas</h1>
-        <p id="screen-sub" class="sub"></p>
+      <div class="tl">
+        <button class="back" id="btn-back" type="button" aria-label="Voltar" hidden>‹</button>
+        <h1 id="screen-title">Agenda</h1>
       </div>
-      <button class="streak" id="btn-streak" aria-label="Sequência de dias" type="button">
-        <svg class="ic"><use href="#i-heart"/></svg>
-        <span id="streak-badge">0</span>
-      </button>
+      <button class="streak bell js-bell" type="button" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg><b class="js-bell-n" hidden>0</b></button>
     </header>
-
-    <!-- Conteúdo -->
     <main id="main">
-
-      <!-- ===== TAREFAS ===== -->
-      <section class="screen active" id="screen-tasks">
+      <section class="screen active" id="screen-agenda">
         <div class="hero">
-          <h2 class="hello">Olá, <b id="hello-name">Princesa</b></h2>
-          <p class="hello-sub">Vamos focar e concluir o dia</p>
-
-          <label class="search">
-            <input id="search" type="search" placeholder="Buscar tarefas" autocomplete="off" enterkeyhint="search">
-            <span class="search-btn"><svg class="ic"><use href="#i-search"/></svg></span>
-          </label>
-
-          <div class="cat-h">Filtrar</div>
-          <div class="chips" id="chips" role="tablist">
-            <button class="chip active" data-filter="all" type="button"><span class="tile"><svg class="ic"><use href="#i-list"/></svg></span><span class="lbl">Todas</span></button>
-            <button class="chip" data-filter="today" type="button"><span class="tile"><svg class="ic"><use href="#i-calendar"/></svg></span><span class="lbl">Hoje</span></button>
-            <button class="chip" data-filter="pending" type="button"><span class="tile"><svg class="ic"><use href="#i-clock"/></svg></span><span class="lbl">Pendentes</span></button>
-            <button class="chip" data-filter="done" type="button"><span class="tile"><svg class="ic"><use href="#i-circle-check"/></svg></span><span class="lbl">Feitas</span></button>
+          <button class="streak bell hero-bell js-bell" type="button" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg><b class="js-bell-n" hidden>0</b></button>
+          <h2 class="hello">Olá, <b id="hello-name">Doutora</b></h2>
+          <p class="hello-sub">Sua agenda e seus atendimentos</p>
+          <div class="dnav">
+            <button id="day-prev" type="button" aria-label="Dia anterior">‹</button>
+            <button class="lbl" id="day-label" type="button"></button>
+            <button id="day-next" type="button" aria-label="Próximo dia">›</button>
           </div>
         </div>
-
         <div class="panel">
           <div class="panel-h">
             <div>
-              <div class="panel-t">Minhas tarefas</div>
-              <div class="panel-s" id="sum-text">0 de 0 concluídas</div>
+              <div class="panel-t">Consultas do dia</div>
+              <div class="panel-s" id="sum-text">0 consultas no dia</div>
             </div>
-            <div class="pill" id="sum-pct">0%</div>
+            <div class="pill" id="sum-pct">0/0</div>
           </div>
           <div class="bar"><span id="sum-bar"></span></div>
-
-          <ul class="list" id="task-list"></ul>
-
-          <div class="empty" id="task-empty" hidden>
-            <svg class="ic big-ic"><use href="#i-inbox"/></svg>
-            <p class="empty-t" id="empty-title">Nenhuma tarefa por aqui</p>
-            <p class="empty-s" id="empty-sub">Toque no botão + para criar sua primeira tarefa.</p>
+          <ul class="list" id="appt-list"></ul>
+          <div class="empty" id="appt-empty" hidden>
+            <svg class="ic big-ic"><use href="#i-calendar"/></svg>
+            <p class="empty-t">Nenhuma consulta neste dia</p>
+            <p class="empty-s">Toque no botão + para agendar.</p>
           </div>
         </div>
       </section>
-
-      <!-- ===== FOCO ===== -->
-      <section class="screen" id="screen-focus" data-mode="focus">
-        <div class="seg" id="mode-seg">
-          <button class="active" data-mode="focus" type="button">Foco</button>
-          <button data-mode="short" type="button">Pausa curta</button>
-          <button data-mode="long" type="button">Pausa longa</button>
-        </div>
-
-        <div class="timer">
-          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-            <circle class="ring-bg" cx="100" cy="100" r="90"/>
-            <circle class="ring-fg" id="ring-fg" cx="100" cy="100" r="90"/>
-          </svg>
-          <div class="timer-center">
-            <div class="time" id="time" role="timer" aria-live="off">25:00</div>
-            <div class="mode-label" id="mode-label">Foco</div>
-          </div>
-        </div>
-
-        <button class="active-task" id="active-task" type="button">
-          <svg class="ic"><use href="#i-target"/></svg>
-          <span id="active-task-label">Escolher tarefa para focar</span>
-        </button>
-
-        <div class="controls">
-          <button class="ctrl" id="btn-reset" type="button" aria-label="Reiniciar"><svg class="ic"><use href="#i-reset"/></svg></button>
-          <button class="ctrl main" id="btn-toggle" type="button" aria-label="Iniciar"><svg class="ic"><use href="#i-play"/></svg></button>
-          <button class="ctrl" id="btn-skip" type="button" aria-label="Pular"><svg class="ic"><use href="#i-skip"/></svg></button>
-        </div>
-
-        <div class="dots" id="dots" aria-hidden="true"></div>
-        <p class="hint" id="cycle-hint"></p>
+      <section class="screen" id="screen-patients">
+        <label class="search flat">
+          <input id="search" type="search" placeholder="Buscar paciente" autocomplete="off" enterkeyhint="search">
+          <span class="search-btn"><svg class="ic"><use href="#i-search"/></svg></span>
+        </label>
+        <div class="card glass" id="patient-card"><div id="patient-list"></div></div>
+        <p class="hint" id="patients-empty" hidden>Nenhum paciente encontrado. Toque em + para cadastrar.</p>
       </section>
-
-      <!-- ===== ESTATÍSTICAS ===== -->
-      <section class="screen" id="screen-stats">
-        <div class="grid">
-          <div class="stat glass"><div class="stat-l">Foco hoje</div><div class="stat-v" id="st-focus">0 min</div></div>
-          <div class="stat glass"><div class="stat-l">Concluídas hoje</div><div class="stat-v" id="st-done">0</div></div>
-          <div class="stat glass"><div class="stat-l">Sequência</div><div class="stat-v" id="st-streak">0 dias</div></div>
-          <div class="stat glass"><div class="stat-l">Sessões de foco</div><div class="stat-v" id="st-sessions">0</div></div>
-        </div>
-
-        <div class="card glass">
-          <div class="card-h"><span>Últimos 7 dias</span><span class="muted" id="st-week-total">0 min</span></div>
-          <div class="chart" id="chart"></div>
-        </div>
-
-        <div class="card glass">
-          <div class="card-h"><span>Resumo geral</span></div>
-          <div class="kv"><span>Tempo total focado</span><b id="st-total-time">0 min</b></div>
-          <div class="kv"><span>Tarefas concluídas</span><b id="st-total-done">0</b></div>
-          <div class="kv"><span>Taxa de conclusão</span><b id="st-rate">0%</b></div>
-        </div>
+      <section class="screen" id="screen-patient"><div id="patient-body"></div></section>
+      <section class="screen" id="screen-reminders">
+        <div class="card glass" id="reminders-card"><div id="reminder-list"></div></div>
+        <p class="hint" id="reminders-empty" hidden>Nenhum lembrete. Toque em + para criar.</p>
       </section>
-
-      <!-- ===== AJUSTES ===== -->
-      <section class="screen" id="screen-settings">
-        <div class="card glass">
-          <div class="card-h"><span>Perfil</span></div>
-          <label class="row"><div><div class="row-t">Seu nome</div><div class="row-s">Aparece na saudação</div></div><input class="txt" type="text" maxlength="20" placeholder="Opcional" autocomplete="off" data-setting="name"></label>
+      <section class="screen" id="screen-notifs">
+        <div class="card glass" id="notif-card">
+          <div class="card-h"><span>Alertas</span><button class="mini" id="notif-readall" type="button">Marcar todas como lidas</button></div>
+          <div id="notif-list"></div>
         </div>
-
+        <p class="hint" id="notif-empty" hidden>Nenhuma notificação por enquanto.</p>
+      </section>
+      <section class="screen" id="screen-more">
         <div class="card glass">
-          <div class="card-h"><span>Temporizador</span></div>
-          <div class="row"><div><div class="row-t">Duração do foco</div><div class="row-s">minutos</div></div><input class="num" type="number" inputmode="numeric" min="1" max="120" data-setting="focus"></div>
-          <div class="row"><div><div class="row-t">Pausa curta</div><div class="row-s">minutos</div></div><input class="num" type="number" inputmode="numeric" min="1" max="60" data-setting="short"></div>
-          <div class="row"><div><div class="row-t">Pausa longa</div><div class="row-s">minutos</div></div><input class="num" type="number" inputmode="numeric" min="1" max="90" data-setting="long"></div>
-          <div class="row"><div><div class="row-t">Pausa longa a cada</div><div class="row-s">sessões de foco</div></div><input class="num" type="number" inputmode="numeric" min="2" max="8" data-setting="longEvery"></div>
+          <div class="card-h"><span>Relatórios</span><button class="mini" id="btn-new-report" type="button">+ Novo</button></div>
+          <div id="report-list"></div>
+          <p class="row-s" id="reports-empty" hidden>Nenhum relatório gerado.</p>
         </div>
-
         <div class="card glass">
-          <div class="card-h"><span>Alertas</span></div>
-          <label class="row"><div><div class="row-t">Som ao terminar</div><div class="row-s">Toca um aviso curto</div></div><span class="switch"><input type="checkbox" data-setting="sound"><i></i></span></label>
-          <label class="row"><div><div class="row-t">Vibração</div><div class="row-s">Toques e fim de sessão</div></div><span class="switch"><input type="checkbox" data-setting="vibrate"><i></i></span></label>
+          <div class="card-h"><span>Perfil profissional</span></div>
+          <label class="row"><div><div class="row-t">Nome</div><div class="row-s">Saudação e relatórios</div></div><input class="txt" type="text" maxlength="60" placeholder="Seu nome" autocomplete="off" data-setting="name"></label>
+          <label class="row"><div><div class="row-t">CRP</div></div><input class="txt" type="text" maxlength="30" placeholder="00/00000" autocomplete="off" data-setting="crp"></label>
+          <label class="row"><div><div class="row-t">Consultório</div></div><input class="txt" type="text" maxlength="60" placeholder="Opcional" autocomplete="off" data-setting="clinic"></label>
         </div>
-
+        <div class="card glass">
+          <div class="card-h"><span>Agenda e alertas</span></div>
+          <div class="row"><div><div class="row-t">Duração da sessão</div><div class="row-s">minutos (padrão)</div></div><input class="num" type="number" inputmode="numeric" min="10" max="240" data-setting="sessionMin"></div>
+          <div class="row"><div><div class="row-t">Avisar antes da consulta</div><div class="row-s">minutos</div></div><input class="num" type="number" inputmode="numeric" min="0" max="1440" data-setting="notifyMin"></div>
+          <label class="row"><div><div class="row-t">Vibração</div><div class="row-s">Toques e notificações</div></div><span class="switch"><input type="checkbox" data-setting="vibrate"><i></i></span></label>
+          <label class="row"><div><div class="row-t">Som</div></div><span class="switch"><input type="checkbox" data-setting="sound"><i></i></span></label>
+        </div>
         <div class="card glass" id="card-cloud">
           <div class="card-h"><span>Conta</span><span class="row-s" id="cloud-status"></span></div>
           <div id="cloud-out">
@@ -186,11 +127,10 @@
           </div>
           <div id="cloud-in" hidden>
             <div class="row"><div><div class="row-t" id="cl-who"></div><div class="row-s" id="cl-last"></div></div></div>
-            <button class="btn light wide" id="cl-sync" type="button" style="margin-bottom:10px">Sincronizar agora</button>
+            <button class="btn light wide mb" id="cl-sync" type="button">Sincronizar agora</button>
             <button class="btn soft wide" id="cl-logout" type="button">Sair</button>
           </div>
         </div>
-
         <div class="card glass">
           <div class="card-h"><span>Dados</span></div>
           <div class="btn-grid">
@@ -201,69 +141,34 @@
           <input type="file" id="file-import" accept="application/json,.json" hidden>
           <button class="btn danger wide" id="btn-reset-all" type="button"><svg class="ic"><use href="#i-trash"/></svg>Apagar todos os dados</button>
         </div>
-
-        <p class="hint">Foco v1.0 · Seus dados ficam neste aparelho e, com login, também na sua nuvem.</p>
+        <p class="hint">Prontuário digital · dados sigilosos, protegidos por login e por regras de acesso na nuvem.</p>
       </section>
     </main>
-
-    <!-- Barra de navegação inferior (botão + central) -->
     <nav class="nav" aria-label="Navegação principal">
-      <button class="active" data-go="tasks" type="button" aria-label="Tarefas"><svg class="ic"><use href="#i-home"/></svg></button>
-      <button data-go="focus" type="button" aria-label="Foco"><svg class="ic"><use href="#i-timer"/></svg></button>
-      <button class="fab" id="fab" type="button" aria-label="Nova tarefa"><svg class="ic"><use href="#i-plus"/></svg></button>
-      <button data-go="stats" type="button" aria-label="Estatísticas"><svg class="ic"><use href="#i-chart"/></svg></button>
-      <button data-go="settings" type="button" aria-label="Ajustes"><svg class="ic"><use href="#i-settings"/></svg></button>
+      <button class="active" data-go="agenda" type="button" aria-label="Agenda"><svg class="ic"><use href="#i-calendar"/></svg></button>
+      <button data-go="patients" type="button" aria-label="Pacientes"><svg class="ic"><use href="#i-user"/></svg></button>
+      <button class="fab" id="fab" type="button" aria-label="Novo"><svg class="ic"><use href="#i-plus"/></svg></button>
+      <button data-go="reminders" type="button" aria-label="Lembretes"><svg class="ic"><use href="#i-circle-check"/></svg></button>
+      <button data-go="more" type="button" aria-label="Mais"><svg class="ic"><use href="#i-settings"/></svg></button>
     </nav>
   </div>
-
-  <!-- Backdrop compartilhado -->
   <div class="backdrop" id="backdrop"></div>
-
-  <!-- Sheet: criar/editar tarefa -->
-  <form class="sheet" id="sheet-task" aria-hidden="true" novalidate>
+  <form class="sheet" id="sheet-form" aria-hidden="true" novalidate>
     <div class="grabber"></div>
-    <h2 id="sheet-task-title">Nova tarefa</h2>
-
-    <label class="field">
-      <span>Título</span>
-      <input id="f-title" type="text" maxlength="120" placeholder="O que precisa ser feito?" autocomplete="off" enterkeyhint="done">
-    </label>
-
-    <div class="field">
-      <span>Prioridade</span>
-      <div class="seg small" id="f-prio">
-        <button type="button" data-p="alta">Alta</button>
-        <button type="button" data-p="media" class="active">Média</button>
-        <button type="button" data-p="baixa">Baixa</button>
-      </div>
-    </div>
-
-    <div class="two">
-      <label class="field">
-        <span>Projeto</span>
-        <input id="f-project" type="text" maxlength="30" list="projects" placeholder="Opcional" autocomplete="off">
-        <datalist id="projects"></datalist>
-      </label>
-      <label class="field">
-        <span>Prazo</span>
-        <input id="f-due" type="date">
-      </label>
-    </div>
-
+    <h2 id="form-title"></h2>
+    <div id="form-body"></div>
+    <div class="btn-grid" id="form-extra"></div>
     <div class="sheet-actions">
-      <button type="button" class="btn soft" id="f-cancel">Cancelar</button>
-      <button type="submit" class="btn primary" id="f-save">Salvar</button>
+      <button type="button" class="btn soft" id="form-cancel">Cancelar</button>
+      <button type="submit" class="btn primary">Salvar</button>
     </div>
+    <button type="button" class="btn danger wide mt" id="form-del" hidden>Excluir</button>
   </form>
-
-  <!-- Sheet: escolher tarefa para foco -->
   <div class="sheet" id="sheet-picker" aria-hidden="true">
     <div class="grabber"></div>
-    <h2>Focar em qual tarefa?</h2>
+    <h2 id="picker-title"></h2>
     <ul class="pick-list" id="picker-list"></ul>
   </div>
-
-  <!-- Diálogo de confirmação -->
   <div class="dialog" id="dialog" aria-hidden="true">
     <div class="dialog-box" role="alertdialog" aria-labelledby="dlg-title" aria-describedby="dlg-text">
       <h3 id="dlg-title">Confirmar</h3>
@@ -274,10 +179,8 @@
       </div>
     </div>
   </div>
-
-  <!-- Toasts -->
   <div class="toasts" id="toasts" aria-live="polite"></div>
-
+  <div id="print-area"></div>
   <script type="module" src="app.js"></script>
 </body>
 </html>
