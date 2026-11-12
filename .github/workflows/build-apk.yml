@@ -1,0 +1,48 @@
+name: Gerar APK Android
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 3. Configurar Java 17 (Exigido pelo Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 4. Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 5. Instalar Capacitor e criar projeto Android
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "App Gata" "com.appgata.app" --web-dir=www
+          npx cap add android
+          npx cap sync android
+
+      - name: 6. Compilar o APK (Debug)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: 7. Disponibilizar APK para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-gata-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
