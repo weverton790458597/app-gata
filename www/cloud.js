@@ -30,10 +30,14 @@ async function authRequest(grant, body) {
       headers: { apikey: SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-  } catch (e) { throw new Error('Sem conexão com a internet'); }
+  } catch (e) { throw new TypeError('Sem conexão com a internet'); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) {
-    const e = new Error(r.status === 400 ? 'E-mail ou senha incorretos' : (j.error_description || j.msg || 'Falha no login'));
+    const code = j.error_code || j.error || '';
+    const msg = code === 'email_not_confirmed' ? 'Confirme seu e-mail antes de entrar'
+      : code === 'invalid_credentials' || (r.status === 400 && grant === 'password') ? 'E-mail ou senha incorretos'
+      : (j.error_description || j.msg || j.message || 'Falha no login');
+    const e = new Error(msg);
     e.status = r.status;
     throw e;
   }
@@ -76,7 +80,7 @@ async function rest(path, { method = 'GET', body, prefer } = {}) {
 const chunks = (arr, n) => { const o = []; for (let i = 0; i < arr.length; i += n) o.push(arr.slice(i, i + n)); return o; };
 const inList = (ids) => encodeURIComponent('(' + ids.map((i) => `"${i}"`).join(',') + ')');
 const toRow = (e, r) => {
-  const o = { id: r.id, created_at: new Date(r.createdAt || Date.now()).toISOString() };
+  const o = { id: r.id, created_at: new Date(r.createdAt || Date.now()).toISOString(), deleted_at: null };
   for (const [k, t] of Object.entries(SCHEMA[e].f)) {
     const v = r[k];
     o[snake(k)] = t === 'd' || t === 't' || t === 'i' ? (v || null) : t === 'j' ? (v || []) : v;
@@ -94,7 +98,9 @@ const settingsRow = (s) => ({
 });
 const rowSettings = (r) => ({
   name: r.name || '', crp: r.crp || '', clinic: r.clinic || '',
-  sessionMin: r.session_min, notifyMin: r.notify_min, sound: r.sound, vibrate: r.vibrate,
+  sessionMin: r.session_min == null ? 50 : r.session_min,
+  notifyMin: r.notify_min == null ? 30 : r.notify_min,
+  sound: r.sound !== false, vibrate: r.vibrate !== false,
 });
 const add = (map, e, id) => { const l = map[e] || (map[e] = []); if (!l.includes(id)) l.push(id); };
 const pendingCount = () =>
@@ -140,19 +146,23 @@ async function sync() {
     let changed = false;
     for (const e of Object.keys(SCHEMA)) {
       const since = meta.since[e] || '1970-01-01T00:00:00Z';
-      const skip = new Set(meta.dirty[e] || []);
-      const up = [];
-      const rm = [];
+      const all = [];
       let last = since;
       for (let off = 0; ; off += 1000) {
         const page = (await rest(`${SCHEMA[e].table}?select=*&updated_at=gte.${encodeURIComponent(since)}&order=updated_at.asc,id.asc&limit=1000&offset=${off}`)) || [];
         page.forEach((r) => {
           if (Date.parse(r.updated_at) > Date.parse(last)) last = r.updated_at;
-          if (skip.has(r.id)) return;
-          if (r.deleted_at) rm.push(r.id); else up.push(fromRow(e, r));
+          all.push(r);
         });
         if (page.length < 1000) break;
       }
+      const skip = new Set(meta.dirty[e] || []);
+      const up = [];
+      const rm = [];
+      all.forEach((r) => {
+        if (skip.has(r.id)) return;
+        if (r.deleted_at) rm.push(r.id); else up.push(fromRow(e, r));
+      });
       if (up.length || rm.length) { ctx.merge(e, up, rm); changed = true; }
       meta.since[e] = last;
     }
@@ -166,7 +176,8 @@ async function sync() {
     setStatus('ok');
   } catch (e) {
     saveMeta();
-    setStatus(e instanceof TypeError ? 'offline' : 'error', e.message);
+    if (!session) setStatus(isConfigured() ? 'out' : 'unconfigured');
+    else setStatus(e instanceof TypeError ? 'offline' : 'error', e.message);
   } finally {
     busy = false;
     if (again) { again = false; schedule(500); }
