@@ -18,7 +18,7 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Configurar Java 21 (Exigido pelo Gradle atual)
+    - name: Configurar Java 21
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
@@ -31,6 +31,18 @@ jobs:
         npx cap init "App Gata" "com.appgata.app" --web-dir=www
         npx cap add android
         npx cap sync android
+
+    - name: Corrigir conflitos de dependência do Kotlin
+      run: |
+        # Adiciona resolução de conflitos no arquivo build.gradle do app se necessário
+        echo "
+        configurations.all {
+            resolutionStrategy.eachDependency { details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion '1.8.22'
+                }
+            }
+        }" >> android/app/build.gradle
 
     - name: Compilar APK com Gradle
       run: |
