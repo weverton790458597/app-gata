@@ -24,11 +24,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 4. Aceitar licenças e configurar o Android SDK
+      - name: 4. Configurar e Licenciar Android SDK
         run: |
-          mkdir -p $HOME/.android
-          touch $HOME/.android/repositories.cfg
           yes | sdkmanager --licenses || true
+          sdkmanager --update
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: 5. Instalar Capacitor e criar projeto Android
