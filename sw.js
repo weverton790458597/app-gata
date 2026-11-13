@@ -1,4 +1,4 @@
-const V = 'psi-v5';
+const V = 'psi-v6';
 const ASSETS = ['./', 'index.html', 'style.css', 'desktop.css', 'fonts.css', 'app.js', 'storage.js', 'cloud.js', 'push.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
@@ -8,9 +8,13 @@ self.addEventListener('fetch', (e) => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;
   e.respondWith(caches.open(V).then(async (c) => {
-    const hit = await c.match(e.request, { ignoreSearch: true });
-    const net = fetch(e.request).then((r) => { if (r.ok) c.put(e.request, r.clone()); return r; }).catch(() => hit || c.match('index.html'));
-    return hit || net;
+    try {
+      const r = await fetch(e.request, { cache: 'no-cache' });
+      if (r.ok) c.put(e.request, r.clone());
+      return r;
+    } catch (x) {
+      return (await c.match(e.request, { ignoreSearch: true })) || c.match('index.html');
+    }
   }));
 });
 self.addEventListener('push', (e) => {
@@ -31,4 +35,3 @@ self.addEventListener('notificationclick', (e) => {
     return self.clients.openWindow(url);
   }));
 });
-
