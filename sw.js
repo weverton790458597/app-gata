@@ -1,4 +1,4 @@
-const V = 'psi-v4';
+const V = 'psi-v5';
 const ASSETS = ['./', 'index.html', 'style.css', 'desktop.css', 'fonts.css', 'app.js', 'storage.js', 'cloud.js', 'push.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
