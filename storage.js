@@ -50,7 +50,7 @@ export function normalize(raw) {
   });
   const rs = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
   s.settings = {
-    name: String(rs.name || '').trim().replace(/^Doutora$/i, 'Princesa').slice(0, 60),
+    name: String(rs.name || '').replace(/\bDoutora\b\.?/gi, 'Princesa').trim().slice(0, 60),
     crp: String(rs.crp || '').trim().slice(0, 30),
     clinic: String(rs.clinic || '').trim().slice(0, 60),
     sessionMin: num(rs.sessionMin, 10, 240, 50),
