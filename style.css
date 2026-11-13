@@ -464,3 +464,16 @@ input,textarea{-webkit-user-select:text;user-select:text}
   #app[data-screen="agenda"] .hero { padding-top: 20px; }
   #app[data-screen="agenda"] .hero-bell { top: 12px; }
 }
+
+/* puxar para atualizar */
+.ptr {
+  position: fixed; left: 50%; top: calc(var(--safe-top) + 10px); z-index: 60;
+  width: 40px; height: 40px; border-radius: 50%; background: #fff; color: var(--deep);
+  display: grid; place-items: center; box-shadow: 0 6px 18px rgba(72, 20, 128, 0.3);
+  transform: translate(-50%, -52px); opacity: 0; pointer-events: none;
+  transition: transform 0.25s var(--ease), opacity 0.2s;
+}
+.ptr .ic { width: 22px; height: 22px; }
+.ptr.spin .ic { animation: ptrSpin 0.8s linear infinite; }
+@keyframes ptrSpin { to { transform: rotate(360deg); } }
+@media (min-width: 1000px), (orientation: landscape) and (min-width: 640px) { .ptr { display: none; } }

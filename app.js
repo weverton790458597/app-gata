@@ -961,9 +961,69 @@ function bindEvents() {
   bindSettings();
   bindCloud();
 }
+// Puxar para atualizar (só na versão vertical): arrasta para baixo no topo da tela, como no Instagram.
+function bindPull() {
+  const m = $('#main');
+  const ind = el('div', 'ptr');
+  ind.setAttribute('aria-hidden', 'true');
+  ind.innerHTML = '<svg class="ic"><use href="#i-reset"/></svg>';
+  document.body.appendChild(ind);
+  const MAX = 84, TRIG = 62;
+  let y0 = null, x0 = 0, d = 0, working = false;
+  const place = (v, rot) => { ind.style.transform = `translate(-50%, ${v - 52}px) rotate(${rot}deg)`; ind.style.opacity = String(Math.min(1, v / 36)); };
+  const hide = () => { ind.style.transition = ''; ind.classList.remove('spin'); ind.style.transform = ''; ind.style.opacity = ''; };
+  async function refresh() {
+    working = true;
+    ind.style.transition = '';
+    ind.classList.add('spin');
+    ind.style.transform = 'translate(-50%, 18px)';
+    ind.style.opacity = '1';
+    tap(12);
+    const t0 = Date.now();
+    let msg = 'Atualizado', type = 'ok';
+    try {
+      if (!Cloud.isLoggedIn()) {
+        try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) await reg.update(); } catch (e) {}
+        location.reload();
+        return;
+      }
+      await Cloud.sync();
+      const st = Cloud.status();
+      if (st.state === 'offline') { msg = 'Sem conexão'; type = 'err'; }
+      else if (st.state === 'error') { msg = st.msg || 'Falha ao atualizar'; type = 'err'; }
+      else render();
+    } catch (e) { msg = 'Falha ao atualizar'; type = 'err'; }
+    await new Promise((r) => setTimeout(r, Math.max(0, 700 - (Date.now() - t0))));
+    hide();
+    working = false;
+    toast(msg, { type });
+  }
+  m.addEventListener('touchstart', (e) => {
+    const bad = working || MQ_SHELL.matches || openSheetEl || m.scrollTop > 0 || e.touches.length !== 1 || e.target.closest('input,textarea,select,.dialog');
+    if (bad) { y0 = null; return; }
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; d = 0;
+    ind.style.transition = 'none';
+  }, { passive: true });
+  m.addEventListener('touchmove', (e) => {
+    if (y0 == null) return;
+    const dy = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+    if (m.scrollTop > 0 || dy <= 0 || Math.abs(dx) > dy) { d = 0; ind.style.opacity = '0'; return; }
+    d = Math.min(MAX, dy * 0.5);
+    place(d, d * 5);
+  }, { passive: true });
+  const end = () => {
+    if (y0 == null) return;
+    y0 = null;
+    if (d >= TRIG) refresh(); else hide();
+    d = 0;
+  };
+  m.addEventListener('touchend', end, { passive: true });
+  m.addEventListener('touchcancel', end, { passive: true });
+}
 function init() {
   bindEvents();
   bindNative();
+  bindPull();
   go('agenda');
   startCloud();
   scan();
