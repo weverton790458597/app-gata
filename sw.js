@@ -1,5 +1,5 @@
-const V = 'psi-v3';
-const ASSETS = ['./', 'index.html', 'style.css', 'fonts.css', 'app.js', 'storage.js', 'cloud.js', 'push.js', 'manifest.webmanifest', 'icons/icon-192.png'];
+const V = 'psi-v4';
+const ASSETS = ['./', 'index.html', 'style.css', 'desktop.css', 'fonts.css', 'app.js', 'storage.js', 'cloud.js', 'push.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== V).map((x) => caches.delete(x)))).then(() => self.clients.claim()));
