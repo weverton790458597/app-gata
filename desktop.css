@@ -313,11 +313,20 @@
   .av.lg { width: 56px; height: 56px; font-size: 20px; }
   .toasts { bottom: calc(var(--safe-bottom) + 14px); }
 }
-
 /* ---- abas de local de atendimento no layout horizontal ---- */
 @media (min-width: 1000px), (orientation: landscape) and (min-width: 640px) {
-  .wp-bar, #app[data-screen="agenda"] .wp-bar { padding: 6px 40px 0; }
+  .wp-bar, #app[data-screen="agenda"] .wp-bar { padding: 4px 40px 8px; }
   .wp-bar button, #app[data-screen="agenda"] .wp-bar button { flex: 0 0 auto; min-width: 140px; background: #fff; color: var(--deep); box-shadow: var(--sh); }
   .wp-bar button.active, #app[data-screen="agenda"] .wp-bar button.active { background: var(--purple); color: #fff; box-shadow: none; }
-  #app[data-screen="agenda"] .hero { padding: 18px 24px; }
+}
+@media (min-width: 1000px) and (max-width: 1099px),
+       (orientation: landscape) and (min-width: 640px) and (max-width: 1099px),
+       (orientation: landscape) and (min-width: 640px) and (max-height: 560px),
+       (min-width: 1000px) and (max-height: 560px) {
+  .wp-bar, #app[data-screen="agenda"] .wp-bar { padding-left: 28px; padding-right: 28px; }
+}
+@media (orientation: landscape) and (min-width: 640px) and (max-height: 560px),
+       (min-width: 1000px) and (max-height: 560px) {
+  .wp-bar, #app[data-screen="agenda"] .wp-bar { padding-top: 0; padding-bottom: 4px; }
+  .wp-bar button { min-height: 34px; font-size: 13px; }
 }
