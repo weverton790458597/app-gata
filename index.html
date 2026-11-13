@@ -14,6 +14,7 @@
   <title>Consultório</title>
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="desktop.css">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -51,6 +52,7 @@
         <button class="back" id="btn-back" type="button" aria-label="Voltar" hidden>‹</button>
         <h1 id="screen-title">Agenda</h1>
       </div>
+      <time class="top-date" id="top-date"></time>
       <button class="streak bell js-bell" type="button" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg><b class="js-bell-n" hidden>0</b></button>
     </header>
     <main id="main">
@@ -81,6 +83,28 @@
             <p class="empty-s">Toque no botão + para agendar.</p>
           </div>
         </div>
+        <aside class="side" id="agenda-side" aria-label="Calendário e resumo">
+          <section class="dcard">
+            <div class="dc-h"><b id="cal-title"></b><span class="cal-nav"><button id="cal-prev" type="button" aria-label="Mês anterior">‹</button><button id="cal-next" type="button" aria-label="Próximo mês">›</button></span></div>
+            <div class="cal-wd" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="cal-g" id="cal-grid"></div>
+          </section>
+          <section class="dcard">
+            <div class="dc-h"><span>Resumo do dia</span></div>
+            <div class="sx-grid">
+              <div class="sx"><b id="sx-total">0</b><span>Consultas</span></div>
+              <div class="sx info"><b id="sx-pend">0</b><span>A realizar</span></div>
+              <div class="sx ok"><b id="sx-done">0</b><span>Realizadas</span></div>
+              <div class="sx bad"><b id="sx-miss">0</b><span>Faltas</span></div>
+            </div>
+            <p class="next-up" id="next-up" hidden></p>
+          </section>
+          <section class="dcard">
+            <div class="dc-h"><span>Próximos lembretes</span><button class="mini" id="side-rem-all" type="button">Ver todos</button></div>
+            <div id="side-rem"></div>
+            <p class="row-s dk" id="side-rem-empty" hidden>Nenhum lembrete pendente.</p>
+          </section>
+        </aside>
       </section>
       <section class="screen" id="screen-patients">
         <label class="search flat">
@@ -155,11 +179,15 @@
       </section>
     </main>
     <nav class="nav" aria-label="Navegação principal">
-      <button class="active" data-go="agenda" type="button" aria-label="Agenda"><svg class="ic"><use href="#i-calendar"/></svg><span>Agenda</span></button>
-      <button data-go="patients" type="button" aria-label="Pacientes"><svg class="ic"><use href="#i-user"/></svg><span>Pacientes</span></button>
-      <button class="fab" id="fab" type="button" aria-label="Novo"><svg class="ic"><use href="#i-plus"/></svg></button>
-      <button data-go="reminders" type="button" aria-label="Lembretes"><svg class="ic"><use href="#i-circle-check"/></svg><span>Lembretes</span></button>
-      <button data-go="more" type="button" aria-label="Mais"><svg class="ic"><use href="#i-settings"/></svg><span>Ajustes</span></button>
+      <div class="brand"><span class="brand-mark"><svg class="ic"><use href="#i-heart"/></svg></span><div><b>Consultório</b><small>Prontuário digital</small></div></div>
+      <button class="active" data-go="agenda" type="button" aria-label="Agenda" title="Agenda (1)"><svg class="ic"><use href="#i-calendar"/></svg><span>Agenda</span></button>
+      <button data-go="patients" type="button" aria-label="Pacientes" title="Pacientes (2)"><svg class="ic"><use href="#i-user"/></svg><span>Pacientes</span></button>
+      <button class="fab" id="fab" type="button" aria-label="Novo" title="Novo (N)"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Nova consulta</span></button>
+      <button data-go="reminders" type="button" aria-label="Lembretes" title="Lembretes (3)"><svg class="ic"><use href="#i-circle-check"/></svg><span>Lembretes</span></button>
+      <button class="only-shell" data-go="notifs" type="button" aria-label="Notificações" title="Notificações"><svg class="ic"><use href="#i-bell"/></svg><span>Notificações</span><b class="js-bell-n" hidden>0</b></button>
+      <button data-go="more" type="button" aria-label="Mais" title="Ajustes (4)"><svg class="ic"><use href="#i-settings"/></svg><span>Ajustes</span></button>
+      <p class="nav-tip">Atalhos: <kbd>N</kbd> novo · <kbd>←</kbd><kbd>→</kbd> dia · <kbd>/</kbd> buscar</p>
+      <button class="nav-foot" id="side-me" type="button" aria-label="Perfil e ajustes"><span class="av" id="side-av">D</span><span class="who"><b id="side-name">Doutora</b><small id="side-sub">Consultório</small></span><i class="dot" id="side-dot"></i></button>
     </nav>
   </div>
   <div class="backdrop" id="backdrop"></div>
