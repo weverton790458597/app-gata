@@ -477,3 +477,24 @@ input,textarea{-webkit-user-select:text;user-select:text}
 .ptr.spin .ic { animation: ptrSpin 0.8s linear infinite; }
 @keyframes ptrSpin { to { transform: rotate(360deg); } }
 @media (min-width: 1000px), (orientation: landscape) and (min-width: 640px) { .ptr { display: none; } }
+
+/* ---- tela de login ---- */
+#login { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; overflow-y: auto;
+  padding: calc(var(--safe-top) + 24px) 24px calc(var(--safe-bottom) + 24px);
+  background: linear-gradient(160deg, #8a45c8 0%, #a55bdb 55%, #c58aef 100%); color: #fff; font-family: var(--body, system-ui, sans-serif); }
+html.authed #login { display: none; }
+html:not(.authed) #app, html:not(.authed) .backdrop, html:not(.authed) .sheet { visibility: hidden; }
+.lg-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.lg-mark { width: 64px; height: 64px; margin: 0 auto; border-radius: 22px; display: grid; place-items: center; background: #fff; color: var(--pink); box-shadow: 0 12px 28px rgba(50, 0, 100, 0.3); }
+.lg-mark .ic { width: 32px; height: 32px; }
+.lg-box h1 { margin: 6px 0 0; font-size: 28px; font-weight: 800; }
+.lg-sub { margin: 0 0 8px; font-size: 14px; opacity: 0.85; }
+.lg-field { display: flex; flex-direction: column; gap: 6px; text-align: left; font-size: 13px; font-weight: 700; }
+.lg-field input { height: 52px; border-radius: 26px; padding: 0 20px; font-size: 16px; font-weight: 600; outline: none; color: #fff;
+  background: rgba(255, 255, 255, 0.18); border: 2px solid transparent; font-family: inherit; }
+.lg-field input::placeholder { color: rgba(255, 255, 255, 0.6); font-weight: 500; }
+.lg-field input:focus { border-color: #fff; }
+.lg-err { margin: 0; padding: 10px 14px; border-radius: 16px; background: rgba(255, 79, 139, 0.9); font-size: 13px; font-weight: 700; }
+#lg-btn { background: #fff; color: var(--deep); margin-top: 4px; }
+#lg-btn:disabled { opacity: 0.7; }
+.lg-hint { margin: 4px 0 0; font-size: 12px; opacity: 0.75; }

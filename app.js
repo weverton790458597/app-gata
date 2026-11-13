@@ -734,6 +734,18 @@ function nav(url) {
   if (g && ORDER.includes(g)) go(g);
   if (u.searchParams.get('new') === '1') openForm('reminders');
 }
+function onboard() {
+  if (!document.documentElement.classList.contains('authed')) return;
+  const seen = () => { try { localStorage.setItem('psi.onboard.v1', '1'); } catch (e) {} };
+  let first = false;
+  try { first = !localStorage.getItem('psi.onboard.v1'); } catch (e) {}
+  if (first) setTimeout(() => {
+    seen();
+    $('#ob-ios').hidden = !(/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone);
+    $('#ob-allow').hidden = !Push.supported();
+    openSheet($('#sheet-onboard'));
+  }, 800);
+}
 function bindNative() {
   Push.init();
   navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'nav') nav(ev.data.url); });
@@ -750,15 +762,7 @@ function bindNative() {
     } catch (e) { toast(e.message || 'Não foi possível ativar', { type: 'err' }); }
     renderPush();
   };
-  const seen = () => { try { localStorage.setItem('psi.onboard.v1', '1'); } catch (e) {} };
-  let first = false;
-  try { first = !localStorage.getItem('psi.onboard.v1'); } catch (e) {}
-  if (first) setTimeout(() => {
-    seen();
-    $('#ob-ios').hidden = !(/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone);
-    $('#ob-allow').hidden = !Push.supported();
-    openSheet($('#sheet-onboard'));
-  }, 800);
+  onboard();
   $('#ob-later').onclick = () => closeSheet();
   $('#ob-allow').onclick = async () => {
     closeSheet();
@@ -791,9 +795,17 @@ function bindNative() {
     if (ORDER[i]) go(ORDER[i]);
   }, { passive: true });
 }
+function renderGate() {
+  const open = !Cloud.isConfigured() || Cloud.isLoggedIn();
+  const was = document.documentElement.classList.contains('authed');
+  document.documentElement.classList.toggle('authed', open);
+  if (!open && was) { go('agenda'); const p = $('#lg-pass'); if (p) p.value = ''; }
+  return open;
+}
 function renderCloud() {
   const st = Cloud.status();
   const on = Cloud.isLoggedIn();
+  renderGate();
   $('#cloud-out').hidden = on;
   $('#cloud-in').hidden = !on;
   const labels = { unconfigured: 'Não configurado', out: 'Desconectado', idle: 'Conectado', syncing: 'Sincronizando…', ok: 'Sincronizado', offline: 'Sem conexão', error: 'Erro ao sincronizar' };
@@ -880,6 +892,30 @@ function bindSettings() {
     toast('Dados apagados');
   };
 }
+function bindLogin() {
+  const form = $('#lg-form'), err = $('#lg-err'), btn = $('#lg-btn');
+  const fail = (m) => { err.textContent = m; err.hidden = false; };
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const email = $('#lg-email').value.trim();
+    const pass = $('#lg-pass').value;
+    err.hidden = true;
+    if (!email || !pass) return fail('Informe e-mail e senha');
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+    try {
+      await Cloud.login(email, pass);
+      $('#lg-pass').value = '';
+      Cloud.markAll(state);
+      renderCloud();
+      go('agenda');
+      Cloud.start();
+      Push.auto(state).then(renderPush);
+      onboard();
+    } catch (e) { fail(e.message || 'Falha no login'); }
+    finally { btn.disabled = false; btn.textContent = 'Entrar'; }
+  });
+}
 function bindCloud() {
   $('#cl-login').onclick = async () => {
     const email = $('#cl-email').value.trim();
@@ -960,6 +996,7 @@ function bindEvents() {
   window.addEventListener('pagehide', () => Storage.save(state));
   bindSettings();
   bindCloud();
+  bindLogin();
 }
 // Puxar para atualizar (só na versão vertical): arrasta para baixo no topo da tela, como no Instagram.
 function bindPull() {

@@ -13,6 +13,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Consultório</title>
+  <script>try{if(localStorage.getItem('psi.auth.v1'))document.documentElement.classList.add('authed')}catch(e){}</script>
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="desktop.css">
@@ -47,6 +48,18 @@
       <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     </defs>
   </svg>
+  <div id="login" role="dialog" aria-modal="true" aria-labelledby="lg-title">
+    <form class="lg-box" id="lg-form" novalidate>
+      <span class="lg-mark"><svg class="ic"><use href="#i-heart"/></svg></span>
+      <h1 id="lg-title">Consultório</h1>
+      <p class="lg-sub">Prontuário digital · entre para acessar seus dados</p>
+      <label class="lg-field"><span>E-mail</span><input id="lg-email" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="voce@email.com" required></label>
+      <label class="lg-field"><span>Senha</span><input id="lg-pass" type="password" autocomplete="current-password" placeholder="••••••••" required></label>
+      <p class="lg-err" id="lg-err" role="alert" hidden></p>
+      <button class="btn primary wide" id="lg-btn" type="submit">Entrar</button>
+      <p class="lg-hint">Seus dados ficam protegidos por login e sincronizam com a nuvem.</p>
+    </form>
+  </div>
   <div id="app" data-screen="agenda">
     <header class="topbar">
       <div class="tl">
