@@ -241,4 +241,5 @@ export const Cloud = {
     Object.keys(SCHEMA).forEach((e) => state[e].forEach((r) => Cloud.del(e, r.id)));
   },
   sync,
+  api: rest,
 };

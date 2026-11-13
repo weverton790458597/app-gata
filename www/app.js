@@ -1,5 +1,6 @@
 import { Storage, SCHEMA } from './storage.js';
 import { Cloud } from './cloud.js';
+import { Push } from './push.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const pad = (n) => String(n).padStart(2, '0');
@@ -53,6 +54,7 @@ function put(e, r) {
   if (i < 0) { r.createdAt = r.createdAt || Date.now(); L.push(r); } else L[i] = r;
   Storage.save(state);
   Cloud.mark(e, r.id);
+  if (e === 'reminders' || e === 'appointments') Push.reconcile(state);
   return r;
 }
 function drop(e, id) {
@@ -61,6 +63,7 @@ function drop(e, id) {
   state[e].splice(i, 1);
   Storage.save(state);
   Cloud.del(e, id);
+  if (e === 'reminders' || e === 'appointments') Push.reconcile(state);
 }
 function removePatient(id) {
   Object.keys(SCHEMA).forEach((e) => {
@@ -88,14 +91,15 @@ function toast(msg, opts = {}) {
 }
 let openSheetEl = null;
 function openSheet(s) {
-  closeSheet();
+  if (openSheetEl) shut();
   openSheetEl = s;
   s.classList.add('open');
   s.setAttribute('aria-hidden', 'false');
   $('#backdrop').classList.add('open');
   document.body.classList.add('lock');
+  if (!(history.state && history.state.sheet)) history.pushState({ sheet: 1 }, '');
 }
-function closeSheet() {
+function shut() {
   if (!openSheetEl) return;
   openSheetEl.classList.remove('open');
   openSheetEl.setAttribute('aria-hidden', 'true');
@@ -103,6 +107,11 @@ function closeSheet() {
   $('#backdrop').classList.remove('open');
   document.body.classList.remove('lock');
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+}
+function closeSheet() {
+  if (!openSheetEl) return;
+  shut();
+  if (history.state && history.state.sheet) { ui.skip = (ui.skip || 0) + 1; history.back(); }
 }
 function confirmDialog(title, text, okLabel = 'Confirmar') {
   return new Promise((resolve) => {
@@ -241,7 +250,7 @@ const FORMS = {
     sum: (r) => [fmtDate(r.date), lab(REAS, r.reason)],
   },
   reminders: {
-    title: 'Lembrete', req: ['title'], init: () => ({ priority: 'media', done: false }),
+    title: 'Lembrete', req: ['title'], init: () => { const d = new Date(Date.now() + 36e5); return { priority: 'media', done: false, dueDate: dayKey(d.getTime()), dueTime: pad(d.getHours()) + ':00' }; },
     fields: [['title', 'Lembrete', T], ['patientId', 'Paciente (opcional)', P, 'opt'], ['dueDate', 'Data', D], ['dueTime', 'Hora', H], ['priority', 'Prioridade', S, PRIO], ['notes', 'Observações', A]],
     sum: (r) => [r.title, fmtDate(r.dueDate)],
   },
@@ -369,8 +378,12 @@ async function deleteForm() {
   toast('Excluído');
   render();
 }
-function go(name) {
-  if ((name === 'patient' || name === 'notifs') && ui.screen !== 'patient' && ui.screen !== 'notifs') ui.prev = ui.screen;
+const ORDER = ['agenda', 'patients', 'reminders', 'more'];
+const isSub = (n) => n === 'patient' || n === 'notifs';
+function go(name, pop) {
+  if (isSub(name) && !isSub(ui.screen)) ui.prev = ui.screen;
+  if (isSub(name) && !pop && ui.screen !== name) history.pushState({ s: name }, '');
+  $('#app').style.setProperty('--dir', (isSub(ui.screen) && !isSub(name) ? -18 : isSub(name) ? 18 : ORDER.indexOf(name) < ORDER.indexOf(ui.screen) ? -18 : 18) + 'px');
   ui.screen = name;
   $('#app').dataset.screen = name;
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === 'screen-' + name));
@@ -389,6 +402,7 @@ function openPatient(id) { ui.pid = id; go('patient'); }
 function render() {
   ({ agenda: rAgenda, patients: rPatients, reminders: rReminders, more: rMore, patient: rPatient, notifs: rNotifs })[ui.screen]();
   const n = state.notifications.filter((x) => !x.read).length;
+  if (navigator.setAppBadge) (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {});
   $$('.js-bell-n').forEach((b) => { b.textContent = n > 9 ? '9+' : n; b.hidden = !n; });
 }
 function apptEl(a) {
@@ -551,7 +565,7 @@ function scan() {
     if (a.status === 'realizada' && !state.sessionNotes.some((x) => x.appointmentId === a.id)) n(`ev-${a.id}`, 'evolucao', 'Evolução pendente', `${fmtDate(a.date)} · ${pname(a.patientId)}`, 'appointments', a.id);
   });
   state.reminders.forEach((r) => {
-    if (!r.done && r.dueDate && r.dueDate <= t) n(`rm-${r.id}-${r.dueDate}`, 'lembrete', r.dueDate < t ? 'Lembrete atrasado' : 'Lembrete de hoje', r.title, 'reminders', r.id);
+    if (!r.done && r.dueDate && (r.dueDate < t || (r.dueDate === t && (!r.dueTime || nm >= toMin(r.dueTime))))) n(`rm-${r.id}-${r.dueDate}`, 'lembrete', r.dueDate < t ? 'Lembrete atrasado' : 'Lembrete de hoje', r.title, 'reminders', r.id);
   });
   state.plans.forEach((p) => {
     const pt = byId('patients', p.patientId);
@@ -561,7 +575,79 @@ function scan() {
   if (!fresh.length) return;
   toast(fresh.length === 1 ? fresh[0][0] + ' · ' + fresh[0][1] : `${fresh.length} novas notificações`, { duration: 4500 });
   if (state.settings.vibrate && navigator.vibrate) { try { navigator.vibrate([120, 80, 120]); } catch (e) {} }
+  chime();
   render();
+}
+let ac = null;
+function chime() {
+  if (!state.settings.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1175].forEach((f, i) => {
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * 0.18;
+      o.frequency.value = f; g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.4);
+    });
+  } catch (e) {}
+}
+function renderPush() {
+  const ios = /iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone;
+  const b = $('#push-btn');
+  let st = 'Desativadas', help = 'Receba lembretes e consultas com som e vibração, mesmo com o app fechado.';
+  b.disabled = false;
+  $('#push-test').hidden = true;
+  $('#push-hide').checked = Push.hide();
+  if (!Push.supported()) { st = 'Indisponível'; help = ios ? 'No iPhone: toque em Compartilhar › Adicionar à Tela de Início e abra o app por lá.' : 'Este navegador não suporta notificações push.'; b.hidden = true; }
+  else if (!Cloud.isLoggedIn()) { help = 'Entre na conta (abaixo) para ativar: os avisos são enviados pela nuvem.'; b.disabled = true; }
+  else if (Notification.permission === 'denied') { st = 'Bloqueadas'; help = 'Libere as notificações nas configurações do navegador ou do sistema.'; b.disabled = true; }
+  else if (Push.enabled()) { st = 'Ativas'; help = 'Você será avisado no horário de cada lembrete e antes das consultas.'; $('#push-test').hidden = false; }
+  b.textContent = Push.enabled() ? 'Desativar notificações' : 'Ativar notificações';
+  $('#push-status').textContent = st;
+  $('#push-help').textContent = help;
+}
+function nav(url) {
+  const u = new URL(url, location.href), g = u.searchParams.get('go');
+  if (u.searchParams.get('day')) ui.day = u.searchParams.get('day');
+  if (g && ORDER.includes(g)) go(g);
+  if (u.searchParams.get('new') === '1') openForm('reminders');
+}
+function bindNative() {
+  Push.init();
+  navigator.serviceWorker && navigator.serviceWorker.addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'nav') nav(ev.data.url); });
+  if (location.search.includes('go=')) nav(location.href);
+  history.replaceState({ s: 'root' }, '');
+  window.addEventListener('popstate', () => {
+    if (ui.skip) { ui.skip--; return; }
+    if (openSheetEl) { shut(); return; }
+    if (isSub(ui.screen)) go(ui.prev, true);
+  });
+  $('#push-btn').onclick = async () => {
+    try {
+      if (Push.enabled()) await Push.disable(); else { await Push.enable(state); chime(); toast('Notificações ativadas', { type: 'ok' }); }
+    } catch (e) { toast(e.message || 'Não foi possível ativar', { type: 'err' }); }
+    renderPush();
+  };
+  $('#push-hide').onchange = (ev) => Push.setHide(ev.target.checked, state);
+  $('#push-test').onclick = () => Push.test().then(() => toast('Teste chegando em ~1 minuto', { type: 'ok' }), () => toast('Falha ao agendar teste', { type: 'err' }));
+  $$('.sheet').forEach((s) => {
+    let y0 = null, dy = 0;
+    s.addEventListener('touchstart', (e) => { y0 = s.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+    s.addEventListener('touchmove', (e) => { if (y0 == null) return; dy = e.touches[0].clientY - y0; s.style.transition = 'none'; s.style.transform = dy > 0 ? `translateY(${dy}px)` : ''; }, { passive: true });
+    s.addEventListener('touchend', () => { s.style.transition = ''; s.style.transform = ''; if (y0 != null && dy > 110) closeSheet(); y0 = null; });
+  });
+  let x0, y0, t0, ok = false;
+  const m = $('#main');
+  m.addEventListener('touchstart', (e) => { ok = !openSheetEl && !e.target.closest('input,textarea,select,.dialog'); x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); }, { passive: true });
+  m.addEventListener('touchend', (e) => {
+    if (!ok) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.6 || Date.now() - t0 > 700) return;
+    tap(8);
+    if (isSub(ui.screen)) { if (dx > 0) (history.state && history.state.s ? history.back() : go(ui.prev)); return; }
+    if (ui.screen === 'agenda') { ui.day = addDays(ui.day, dx < 0 ? 1 : -1); rAgenda(); return; }
+    const i = ORDER.indexOf(ui.screen) + (dx < 0 ? 1 : -1);
+    if (ORDER[i]) go(ORDER[i]);
+  }, { passive: true });
 }
 function renderCloud() {
   const st = Cloud.status();
@@ -571,6 +657,7 @@ function renderCloud() {
   const labels = { unconfigured: 'Não configurado', out: 'Desconectado', idle: 'Conectado', syncing: 'Sincronizando…', ok: 'Sincronizado', offline: 'Sem conexão', error: 'Erro ao sincronizar' };
   $('#cloud-status').textContent = labels[st.state] || '';
   $('#cl-who').textContent = Cloud.email();
+  if ($('#push-btn')) renderPush();
   const last = Cloud.lastSync();
   $('#cl-last').textContent = st.state === 'error' && st.msg ? st.msg : last ? 'Última sincronização: ' + new Date(last).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Ainda não sincronizado';
   if (!Cloud.isConfigured()) $('#cl-login').disabled = true;
@@ -584,7 +671,7 @@ function startCloud() {
       state[e] = L.filter((x) => !del.includes(x.id));
     },
     setSettings: (s) => { state.settings = Object.assign({}, state.settings, s); },
-    done: () => { Storage.save(state); render(); scan(); },
+    done: () => { Storage.save(state); render(); scan(); Push.reconcile(state); },
     onStatus: renderCloud,
   });
   renderCloud();
@@ -605,6 +692,7 @@ function bindSettings() {
     } else { state.settings[k] = i.value.trim().slice(0, 60); i.value = state.settings[k]; }
     Storage.save(state);
     Cloud.markSettings();
+    Push.reconcile(state);
     toast('Ajustes salvos', { type: 'ok', duration: 1800 });
   }));
   $('#btn-export').onclick = () => {
@@ -669,6 +757,7 @@ function bindCloud() {
     const p = Cloud.pending();
     const ok = await confirmDialog('Sair da conta?', 'Por segurança, os dados clínicos serão apagados deste aparelho (continuam na nuvem).' + (p ? ` Atenção: ${p} alteração(ões) ainda não sincronizada(s) serão perdidas.` : ''), 'Sair');
     if (!ok) return;
+    await Push.disable();
     Cloud.logout();
     state = Storage.reset();
     go('agenda');
@@ -685,7 +774,7 @@ const fab = () => ({
 function bindEvents() {
   $$('.nav button[data-go]').forEach((b) => b.addEventListener('click', () => { tap(8); go(b.dataset.go); }));
   $('#fab').addEventListener('click', () => { tap(10); fab(); });
-  $('#btn-back').addEventListener('click', () => go(ui.prev));
+  $('#btn-back').addEventListener('click', () => (history.state && history.state.s ? history.back() : go(ui.prev)));
   $$('.js-bell').forEach((b) => b.addEventListener('click', () => go('notifs')));
   $('#day-prev').addEventListener('click', () => { ui.day = addDays(ui.day, -1); rAgenda(); });
   $('#day-next').addEventListener('click', () => { ui.day = addDays(ui.day, 1); rAgenda(); });
@@ -711,6 +800,7 @@ function bindEvents() {
 }
 function init() {
   bindEvents();
+  bindNative();
   go('agenda');
   startCloud();
   scan();

@@ -422,3 +422,29 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--pink); outl
 .hint[hidden]{display:none}
 #print-area{display:none}
 @media print{body>*:not(#print-area){display:none!important}#print-area{display:block;white-space:pre-wrap;font:14px/1.6 Georgia,serif;color:#000}html,body{position:static!important;overflow:visible!important;height:auto!important;background:#fff!important}}
+
+/* ===== v2: app nativo, legibilidade e gestos ===== */
+:root{--gray:#667887;--purple:#a55bdb;--deep:#8a45c8;--tab-h:80px;--body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif}
+body,input,textarea,select,.row-s,.item .s,.appt .sb,.panel-s,.hint,.field>span,.dialog-box p,.toast,.btn,.pick{font-family:var(--body)}
+body{line-height:1.45}
+input,textarea{-webkit-user-select:text;user-select:text}
+#main{scroll-behavior:auto;touch-action:pan-y pinch-zoom}
+@keyframes screenIn{from{opacity:0;transform:translateX(var(--dir,18px))}to{opacity:1;transform:none}}
+.row-s{font-size:13.5px;color:rgba(255,255,255,.88)}
+.item .s{font-size:14px;color:rgba(255,255,255,.9)}
+.item .t{font-size:16px}
+.appt .sb{font-size:14px}.appt .tm small{font-size:12px}
+.panel-s,.hint,.field>span{font-size:14px}
+.hello-sub{font-size:16px;color:#fff}
+.st{min-height:40px;font-size:13px;position:relative}
+.st::after{content:"";position:absolute;inset:-6px -4px}
+.nav button[data-go]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.nav button[data-go] .ic{width:25px;height:25px}
+.nav button[data-go] span{font-size:11.5px;font-weight:700;letter-spacing:.1px}
+.nav button[data-go].active::after{display:none}
+.toasts{top:auto;bottom:calc(var(--tab-h) + var(--safe-bottom) + 12px)}
+.toast{transform:translateY(24px) scale(.95)}.toast.show{transform:none}
+.sheet-actions{position:sticky;bottom:0;margin:8px -24px 0;padding:12px 24px 4px;background:#fff;box-shadow:0 -8px 12px -8px rgba(60,10,100,.12)}
+.grabber{width:48px;height:6px;margin-bottom:12px}
+.btn,.mini,.dnav button{min-height:44px}
+.field textarea{font-size:16px}
