@@ -419,7 +419,7 @@ function openPatient(id) {
 function render() {
   ({ agenda: rAgenda, patients: rPatients, reminders: rReminders, more: rMore, patient: rPatient, notifs: rNotifs })[ui.screen]();
   if (ui.screen === 'patients' && master()) rPatient();
-  const who = state.settings.name || 'Doutora';
+  const who = state.settings.name || 'Princesa';
   $('#side-name').textContent = who;
   $('#side-av').textContent = initials(who);
   $('#side-sub').textContent = state.settings.crp ? 'CRP ' + state.settings.crp : state.settings.clinic || 'Consultório';
@@ -444,7 +444,7 @@ function apptEl(a) {
   return li;
 }
 function rAgenda() {
-  $('#hello-name').textContent = state.settings.name || 'Doutora';
+  $('#hello-name').textContent = state.settings.name || 'Princesa';
   const day = ui.day;
   $('#day-label').textContent = (day === dayKey() ? 'Hoje · ' : '') + new Date(day + 'T00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   const L = state.appointments.filter((a) => a.date === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
