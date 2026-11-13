@@ -97,7 +97,7 @@ const settingsRow = (s) => ({
   session_min: s.sessionMin, notify_min: s.notifyMin, sound: !!s.sound, vibrate: !!s.vibrate,
 });
 const rowSettings = (r) => ({
-  name: r.name || '', crp: r.crp || '', clinic: r.clinic || '',
+  name: (r.name || '').replace(/^Doutora$/i, 'Princesa'), crp: r.crp || '', clinic: r.clinic || '',
   sessionMin: r.session_min == null ? 50 : r.session_min,
   notifyMin: r.notify_min == null ? 30 : r.notify_min,
   sound: r.sound !== false, vibrate: r.vibrate !== false,
