@@ -591,6 +591,9 @@ function chime() {
   } catch (e) {}
 }
 function renderPush() {
+  try { renderPush0(); } catch (e) { $('#push-status').textContent = 'Erro'; $('#push-help').textContent = String(e.message || e); }
+}
+function renderPush0() {
   const ios = /iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone;
   const b = $('#push-btn');
   let st = 'Desativadas', help = 'Receba lembretes e consultas com som e vibração, mesmo com o app fechado.';
@@ -598,6 +601,7 @@ function renderPush() {
   $('#push-test').hidden = true;
   $('#push-hide').checked = Push.hide();
   if (!Push.supported()) { st = 'Indisponível'; help = ios ? 'No iPhone: toque em Compartilhar › Adicionar à Tela de Início e abra o app por lá.' : 'Este navegador não suporta notificações push.'; b.hidden = true; }
+  else if (!Push.configured()) { st = 'Não configurado'; help = 'Falta colar a chave VAPID no push.js.'; b.disabled = true; }
   else if (!Cloud.isLoggedIn()) { help = 'Entre na conta (abaixo) para ativar: os avisos são enviados pela nuvem.'; b.disabled = true; }
   else if (Notification.permission === 'denied') { st = 'Bloqueadas'; help = 'Libere as notificações nas configurações do navegador ou do sistema.'; b.disabled = true; }
   else if (Push.enabled()) { st = 'Ativas'; help = 'Você será avisado no horário de cada lembrete e antes das consultas.'; $('#push-test').hidden = false; }
@@ -623,8 +627,27 @@ function bindNative() {
   });
   $('#push-btn').onclick = async () => {
     try {
-      if (Push.enabled()) await Push.disable(); else { await Push.enable(state); chime(); toast('Notificações ativadas', { type: 'ok' }); }
+      if (Push.enabled()) await Push.disable(true); else { await Push.enable(state); chime(); toast('Notificações ativadas', { type: 'ok' }); }
     } catch (e) { toast(e.message || 'Não foi possível ativar', { type: 'err' }); }
+    renderPush();
+  };
+  const seen = () => { try { localStorage.setItem('psi.onboard.v1', '1'); } catch (e) {} };
+  let first = false;
+  try { first = !localStorage.getItem('psi.onboard.v1'); } catch (e) {}
+  if (first) setTimeout(() => {
+    seen();
+    $('#ob-ios').hidden = !(/iphone|ipad/i.test(navigator.userAgent) && !navigator.standalone);
+    $('#ob-allow').hidden = !Push.supported();
+    openSheet($('#sheet-onboard'));
+  }, 800);
+  $('#ob-later').onclick = () => closeSheet();
+  $('#ob-allow').onclick = async () => {
+    closeSheet();
+    try {
+      if ((await Push.ask()) !== 'granted') { toast('Sem permissão, os avisos não chegam com o app fechado', { type: 'err', duration: 5000 }); return renderPush(); }
+      if (Cloud.isLoggedIn()) { await Push.enable(state); chime(); toast('Notificações ativadas', { type: 'ok' }); }
+      else { toast('Permitido! Entre na conta para concluir', { type: 'ok', duration: 5000 }); go('more'); }
+    } catch (e) { toast(e.message || 'Falha ao ativar', { type: 'err' }); }
     renderPush();
   };
   $('#push-hide').onchange = (ev) => Push.setHide(ev.target.checked, state);
@@ -676,6 +699,7 @@ function startCloud() {
   });
   renderCloud();
   Cloud.start();
+  Push.auto(state).then(renderPush);
 }
 function bindSettings() {
   $$('[data-setting]').forEach((i) => i.addEventListener('change', () => {
@@ -749,6 +773,7 @@ function bindCloud() {
       renderCloud();
       toast('Conectado', { type: 'ok' });
       Cloud.start();
+      Push.auto(state).then(renderPush);
     } catch (e) { toast(e.message || 'Falha no login', { type: 'err' }); }
     finally { btn.disabled = !Cloud.isConfigured(); }
   };

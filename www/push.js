@@ -36,6 +36,13 @@ export const Push = {
   enabled: () => !!read().on && Push.supported() && Notification.permission === 'granted',
   hide: () => read().hide !== false,
   setHide(v, state) { write({ ...read(), hide: v, sched: {} }); Push.reconcile(state); },
+  ask: () => (Push.supported() ? Notification.requestPermission() : Promise.resolve('unsupported')),
+  async auto(state) {
+    if (Push.supported() && Push.configured() && Cloud.isLoggedIn() && Notification.permission === 'granted' && !read().on && !read().off) {
+      try { await Push.enable(state); return true; } catch (e) {}
+    }
+    return false;
+  },
   async init() {
     if (!('serviceWorker' in navigator)) return null;
     try { return await navigator.serviceWorker.register('sw.js'); } catch (e) { return null; }
@@ -48,16 +55,16 @@ export const Push = {
     const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key64(VAPID_PUBLIC_KEY) }));
     const j = sub.toJSON();
     await Cloud.api('push_subscriptions?on_conflict=endpoint', { method: 'POST', prefer: UP, body: [{ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, user_agent: navigator.userAgent.slice(0, 200) }] });
-    write({ ...read(), on: true, sched: {} });
+    write({ ...read(), on: true, off: false, sched: {} });
     Push.reconcile(state, 0);
   },
-  async disable() {
+  async disable(manual) {
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       if (sub) { await Cloud.api(`push_subscriptions?endpoint=eq.${encodeURIComponent(sub.endpoint)}`, { method: 'DELETE' }).catch(() => {}); await sub.unsubscribe(); }
     } catch (e) {}
-    write({ ...read(), on: false, sched: {} });
+    write({ ...read(), on: false, off: !!manual, sched: {} });
   },
   reconcile(state, ms = 2000) {
     clearTimeout(timer);
