@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#a55bdb">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-180.png">
+  <meta name="apple-mobile-web-app-title" content="Consultório">
+  <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Consultório</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="desktop.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4.5v15l13-7.5Z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z"/></symbol>
+      <symbol id="i-reset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
+      <symbol id="i-skip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l10 8-10 8Z"/><path d="M19 5v14"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11 12 4l8.5 7v8.5a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1Z"/></symbol>
+      <symbol id="i-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-7M12 20V5M19 20v-10"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8Z"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3.5"/><path d="M8 3v4M16 3v4M3 10h18M8 15h.01M12 15h.01M16 15h.01"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/></symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0L8 7m4-4 4 4M4 21h16"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1Z"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    </defs>
+  </svg>
+  <div id="app" data-screen="agenda">
+    <header class="topbar">
+      <div class="tl">
+        <button class="back" id="btn-back" type="button" aria-label="Voltar" hidden>‹</button>
+        <h1 id="screen-title">Agenda</h1>
+      </div>
+      <time class="top-date" id="top-date"></time>
+      <button class="streak bell js-bell" type="button" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg><b class="js-bell-n" hidden>0</b></button>
+    </header>
+    <main id="main">
+      <section class="screen active" id="screen-agenda">
+        <div class="hero">
+          <button class="streak bell hero-bell js-bell" type="button" aria-label="Notificações"><svg class="ic"><use href="#i-bell"/></svg><b class="js-bell-n" hidden>0</b></button>
+          <h2 class="hello">Olá, <b id="hello-name">Princesa</b></h2>
+          <p class="hello-sub">Sua agenda e seus atendimentos</p>
+          <div class="dnav">
+            <button id="day-prev" type="button" aria-label="Dia anterior">‹</button>
+            <button class="lbl" id="day-label" type="button"></button>
+            <button id="day-next" type="button" aria-label="Próximo dia">›</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-h">
+            <div>
+              <div class="panel-t">Consultas do dia</div>
+              <div class="panel-s" id="sum-text">0 consultas no dia</div>
+            </div>
+            <div class="pill" id="sum-pct">0/0</div>
+          </div>
+          <div class="bar"><span id="sum-bar"></span></div>
+          <ul class="list" id="appt-list"></ul>
+          <div class="empty" id="appt-empty" hidden>
+            <svg class="ic big-ic"><use href="#i-calendar"/></svg>
+            <p class="empty-t">Nenhuma consulta neste dia</p>
+            <p class="empty-s">Toque no botão + para agendar.</p>
+          </div>
+        </div>
+        <aside class="side" id="agenda-side" aria-label="Calendário e resumo">
+          <section class="dcard">
+            <div class="dc-h"><b id="cal-title"></b><span class="cal-nav"><button id="cal-prev" type="button" aria-label="Mês anterior">‹</button><button id="cal-next" type="button" aria-label="Próximo mês">›</button></span></div>
+            <div class="cal-wd" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="cal-g" id="cal-grid"></div>
+          </section>
+          <section class="dcard">
+            <div class="dc-h"><span>Resumo do dia</span></div>
+            <div class="sx-grid">
+              <div class="sx"><b id="sx-total">0</b><span>Consultas</span></div>
+              <div class="sx info"><b id="sx-pend">0</b><span>A realizar</span></div>
+              <div class="sx ok"><b id="sx-done">0</b><span>Realizadas</span></div>
+              <div class="sx bad"><b id="sx-miss">0</b><span>Faltas</span></div>
+            </div>
+            <p class="next-up" id="next-up" hidden></p>
+          </section>
+          <section class="dcard">
+            <div class="dc-h"><span>Próximos lembretes</span><button class="mini" id="side-rem-all" type="button">Ver todos</button></div>
+            <div id="side-rem"></div>
+            <p class="row-s dk" id="side-rem-empty" hidden>Nenhum lembrete pendente.</p>
+          </section>
+        </aside>
+      </section>
+      <section class="screen" id="screen-patients">
+        <label class="search flat">
+          <input id="search" type="search" placeholder="Buscar paciente" autocomplete="off" enterkeyhint="search">
+          <span class="search-btn"><svg class="ic"><use href="#i-search"/></svg></span>
+        </label>
+        <div class="card glass" id="patient-card"><div id="patient-list"></div></div>
+        <p class="hint" id="patients-empty" hidden>Nenhum paciente encontrado. Toque em + para cadastrar.</p>
+      </section>
+      <section class="screen" id="screen-patient"><div id="patient-body"></div></section>
+      <section class="screen" id="screen-reminders">
+        <div class="card glass" id="reminders-card"><div id="reminder-list"></div></div>
+        <p class="hint" id="reminders-empty" hidden>Nenhum lembrete. Toque em + para criar.</p>
+      </section>
+      <section class="screen" id="screen-notifs">
+        <div class="card glass" id="notif-card">
+          <div class="card-h"><span>Alertas</span><button class="mini" id="notif-readall" type="button">Marcar todas como lidas</button></div>
+          <div id="notif-list"></div>
+        </div>
+        <p class="hint" id="notif-empty" hidden>Nenhuma notificação por enquanto.</p>
+      </section>
+      <section class="screen" id="screen-more">
+        <div class="card glass">
+          <div class="card-h"><span>Relatórios</span><button class="mini" id="btn-new-report" type="button">+ Novo</button></div>
+          <div id="report-list"></div>
+          <p class="row-s" id="reports-empty" hidden>Nenhum relatório gerado.</p>
+        </div>
+        <div class="card glass">
+          <div class="card-h"><span>Perfil profissional</span></div>
+          <label class="row"><div><div class="row-t">Nome</div><div class="row-s">Saudação e relatórios</div></div><input class="txt" type="text" maxlength="60" placeholder="Seu nome" autocomplete="off" data-setting="name"></label>
+          <label class="row"><div><div class="row-t">CRP</div></div><input class="txt" type="text" maxlength="30" placeholder="00/00000" autocomplete="off" data-setting="crp"></label>
+          <label class="row"><div><div class="row-t">Consultório</div></div><input class="txt" type="text" maxlength="60" placeholder="Opcional" autocomplete="off" data-setting="clinic"></label>
+        </div>
+        <div class="card glass">
+          <div class="card-h"><span>Agenda e alertas</span></div>
+          <div class="row"><div><div class="row-t">Duração da sessão</div><div class="row-s">minutos (padrão)</div></div><input class="num" type="number" inputmode="numeric" min="10" max="240" data-setting="sessionMin"></div>
+          <div class="row"><div><div class="row-t">Avisar antes da consulta</div><div class="row-s">minutos</div></div><input class="num" type="number" inputmode="numeric" min="0" max="1440" data-setting="notifyMin"></div>
+          <label class="row"><div><div class="row-t">Vibração</div><div class="row-s">Toques e notificações</div></div><span class="switch"><input type="checkbox" data-setting="vibrate"><i></i></span></label>
+          <label class="row"><div><div class="row-t">Som</div></div><span class="switch"><input type="checkbox" data-setting="sound"><i></i></span></label>
+        </div>
+        <div class="card glass" id="card-push">
+          <div class="card-h"><span>Notificações no celular</span><span class="row-s" id="push-status">Verificando…</span></div>
+          <p class="row-s" id="push-help"></p>
+          <button class="btn light wide mt" id="push-btn" type="button">Ativar notificações</button>
+          <label class="row"><div><div class="row-t">Ocultar nome do paciente</div><div class="row-s">Não aparece na tela bloqueada</div></div><span class="switch"><input type="checkbox" id="push-hide"><i></i></span></label>
+          <button class="btn soft wide" id="push-test" type="button" hidden>Enviar notificação de teste</button>
+        </div>
+        <div class="card glass" id="card-cloud">
+          <div class="card-h"><span>Conta</span><span class="row-s" id="cloud-status"></span></div>
+          <div id="cloud-out">
+            <label class="row"><div><div class="row-t">E-mail</div></div><input class="txt" id="cl-email" type="email" autocomplete="username" autocapitalize="none" placeholder="voce@email.com"></label>
+            <label class="row"><div><div class="row-t">Senha</div></div><input class="txt" id="cl-pass" type="password" autocomplete="current-password" placeholder="••••••••"></label>
+            <button class="btn primary wide" id="cl-login" type="button">Entrar e sincronizar</button>
+          </div>
+          <div id="cloud-in" hidden>
+            <div class="row"><div><div class="row-t" id="cl-who"></div><div class="row-s" id="cl-last"></div></div></div>
+            <button class="btn light wide mb" id="cl-sync" type="button">Sincronizar agora</button>
+            <button class="btn soft wide" id="cl-logout" type="button">Sair</button>
+          </div>
+        </div>
+        <div class="card glass">
+          <div class="card-h"><span>Dados</span></div>
+          <div class="btn-grid">
+            <button class="btn light" id="btn-export" type="button"><svg class="ic"><use href="#i-download"/></svg>Exportar</button>
+            <button class="btn light" id="btn-copy" type="button"><svg class="ic"><use href="#i-copy"/></svg>Copiar</button>
+            <button class="btn light" id="btn-import" type="button"><svg class="ic"><use href="#i-upload"/></svg>Importar</button>
+          </div>
+          <input type="file" id="file-import" accept="application/json,.json" hidden>
+          <button class="btn danger wide" id="btn-reset-all" type="button"><svg class="ic"><use href="#i-trash"/></svg>Apagar todos os dados</button>
+        </div>
+        <p class="hint">Prontuário digital · dados sigilosos, protegidos por login e por regras de acesso na nuvem. · v3</p>
+      </section>
+    </main>
+    <nav class="nav" aria-label="Navegação principal">
+      <div class="brand"><span class="brand-mark"><svg class="ic"><use href="#i-heart"/></svg></span><div><b>Consultório</b><small>Prontuário digital</small></div></div>
+      <button class="active" data-go="agenda" type="button" aria-label="Agenda" title="Agenda (1)"><svg class="ic"><use href="#i-calendar"/></svg><span>Agenda</span></button>
+      <button data-go="patients" type="button" aria-label="Pacientes" title="Pacientes (2)"><svg class="ic"><use href="#i-user"/></svg><span>Pacientes</span></button>
+      <button class="fab" id="fab" type="button" aria-label="Novo" title="Novo (N)"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Nova consulta</span></button>
+      <button data-go="reminders" type="button" aria-label="Lembretes" title="Lembretes (3)"><svg class="ic"><use href="#i-circle-check"/></svg><span>Lembretes</span></button>
+      <button class="only-shell" data-go="notifs" type="button" aria-label="Notificações" title="Notificações"><svg class="ic"><use href="#i-bell"/></svg><span>Notificações</span><b class="js-bell-n" hidden>0</b></button>
+      <button data-go="more" type="button" aria-label="Mais" title="Ajustes (4)"><svg class="ic"><use href="#i-settings"/></svg><span>Ajustes</span></button>
+      <p class="nav-tip">Atalhos: <kbd>N</kbd> novo · <kbd>←</kbd><kbd>→</kbd> dia · <kbd>/</kbd> buscar</p>
+      <button class="nav-foot" id="side-me" type="button" aria-label="Perfil e ajustes"><span class="av" id="side-av">P</span><span class="who"><b id="side-name">Princesa</b><small id="side-sub">Consultório</small></span><i class="dot" id="side-dot"></i></button>
+    </nav>
+  </div>
+  <div class="backdrop" id="backdrop"></div>
+  <form class="sheet" id="sheet-form" aria-hidden="true" novalidate>
+    <div class="grabber"></div>
+    <h2 id="form-title"></h2>
+    <div id="form-body"></div>
+    <div class="btn-grid" id="form-extra"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn soft" id="form-cancel">Cancelar</button>
+      <button type="submit" class="btn primary">Salvar</button>
+    </div>
+    <button type="button" class="btn danger wide mt" id="form-del" hidden>Excluir</button>
+  </form>
+  <div class="sheet" id="sheet-onboard" aria-hidden="true">
+    <div class="grabber"></div>
+    <h2>Ative os avisos</h2>
+    <p class="ob-t">Receba lembretes e consultas no horário certo, com som e vibração, mesmo com o app fechado.</p>
+    <p class="ob-t" id="ob-ios" hidden>No iPhone: toque em Compartilhar › Adicionar à Tela de Início e abra o app por lá para poder ativar.</p>
+    <div class="sheet-actions">
+      <button type="button" class="btn soft" id="ob-later">Agora não</button>
+      <button type="button" class="btn primary" id="ob-allow">Permitir notificações</button>
+    </div>
+  </div>
+  <div class="sheet" id="sheet-picker" aria-hidden="true">
+    <div class="grabber"></div>
+    <h2 id="picker-title"></h2>
+    <ul class="pick-list" id="picker-list"></ul>
+  </div>
+  <div class="dialog" id="dialog" aria-hidden="true">
+    <div class="dialog-box" role="alertdialog" aria-labelledby="dlg-title" aria-describedby="dlg-text">
+      <h3 id="dlg-title">Confirmar</h3>
+      <p id="dlg-text"></p>
+      <div class="sheet-actions">
+        <button type="button" class="btn soft" id="dlg-cancel">Cancelar</button>
+        <button type="button" class="btn danger-solid" id="dlg-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div id="print-area"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+
