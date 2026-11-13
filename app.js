@@ -39,10 +39,13 @@ const DECS = [['manter', 'Manter plano'], ['ajustar', 'Ajustar metas'], ['alta',
 const REAS = [['alta', 'Alta (objetivos atingidos)'], ['abandono', 'Abandono'], ['encaminhamento', 'Encaminhamento'], ['responsaveis', 'Decisão dos responsáveis'], ['outro', 'Outro']];
 const RKIND = [['relatorio', 'Relatório clínico'], ['resumo', 'Resumo dos atendimentos'], ['declaracao', 'Declaração de comparecimento']];
 const OFF = ['cancelada', 'remarcada'];
+const WPS = [['prefeitura', 'Prefeitura'], ['clinica', 'Clínica']];
+const WPKEY = 'psi.wp.v1';
+const loadWp = () => { try { return localStorage.getItem(WPKEY) === 'prefeitura' ? 'prefeitura' : 'clinica'; } catch (e) { return 'clinica'; } };
 const TITLES = { agenda: 'Agenda', patients: 'Pacientes', reminders: 'Lembretes', more: 'Ajustes', patient: 'Paciente', notifs: 'Notificações' };
 const T = 'text', A = 'area', D = 'date', H = 'time', N = 'num', S = 'sel', P = 'pat', C = 'chk';
 let state = Storage.load();
-const ui = { screen: 'agenda', prev: 'agenda', day: dayKey(), pid: null, q: '', exp: new Set(), form: null, cal: '', calFor: '' };
+const ui = { screen: 'agenda', prev: 'agenda', day: dayKey(), pid: null, q: '', exp: new Set(), form: null, cal: '', calFor: '', wp: loadWp() };
 // Layout horizontal: SHELL = barra lateral (PC / paisagem); WIDE = lista + detalhe lado a lado.
 const MQ_SHELL = window.matchMedia('(min-width: 1000px), (orientation: landscape) and (min-width: 640px)');
 const MQ_WIDE = window.matchMedia('(min-width: 1000px), (orientation: landscape) and (min-width: 840px)');
@@ -50,9 +53,31 @@ const master = () => MQ_WIDE.matches;
 const initials = (n) => { const w = String(n || '').trim().split(/\s+/).filter(Boolean); return ((w[0] || '?')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
 const avatar = (n, c = '') => el('span', 'av' + (c ? ' ' + c : ''), initials(n));
 const FABL = { agenda: 'Nova consulta', patients: 'Novo paciente', patient: 'Nova consulta', reminders: 'Novo lembrete', notifs: 'Novo lembrete', more: 'Novo relatório' };
-const sortedPatients = () => [...state.patients].sort((a, b) => (a.status === 'encerrado') - (b.status === 'encerrado') || a.name.localeCompare(b.name));
+const sortedPatients = () => state.patients.filter((p) => p.workplace === ui.wp).sort((a, b) => (a.status === 'encerrado') - (b.status === 'encerrado') || a.name.localeCompare(b.name));
 const byId = (e, id) => state[e].find((x) => x.id === id);
 const pname = (id) => (byId('patients', id) || { name: '—' }).name;
+const inWp = (x) => x.workplace === ui.wp;
+const wpPatients = () => state.patients.filter(inWp);
+const wpAppts = () => state.appointments.filter(inWp);
+const wpRems = () => state.reminders.filter(inWp);
+const wpOfRef = (n) => {
+  const t = n.refType;
+  const r = t === 'appointments' || t === 'reminders' || t === 'patients' ? byId(t, n.refId) : null;
+  return r ? r.workplace : null;
+};
+const wpNotifs = () => state.notifications.filter((n) => { const w = wpOfRef(n); return !w || w === ui.wp; });
+const wpReports = () => state.reports.filter((r) => { const p = byId('patients', r.patientId); return p && p.workplace === ui.wp; });
+function setWp(w) {
+  if ((w !== 'prefeitura' && w !== 'clinica') || w === ui.wp) return;
+  ui.wp = w;
+  try { localStorage.setItem(WPKEY, w); } catch (e) {}
+  ui.pid = (sortedPatients()[0] || {}).id || null;
+  ui.exp.clear();
+  ui.q = '';
+  const sr = $('#search');
+  if (sr) sr.value = '';
+  if (ui.screen === 'patient') go('patients'); else render();
+}
 const mine = (e, pid) => state[e].filter((x) => x.patientId === pid);
 const latest = (e, pid) => mine(e, pid).sort((a, b) => b.date.localeCompare(a.date))[0];
 const latestGoals = (pid) => { const p = latest('plans', pid); return p ? p.goals.map((g) => ({ ...g })) : []; };
@@ -181,7 +206,7 @@ function buildReport(r) {
   const asm = latest('assessments', p.id);
   const ana = latest('anamneses', p.id);
   const per = r.periodStart || r.periodEnd ? `${fmtDate(r.periodStart) || 'início'} a ${fmtDate(r.periodEnd) || fmtDate(dayKey())}` : 'todo o acompanhamento';
-  const sign = '\n' + [s.name, s.crp ? 'CRP ' + s.crp : '', s.clinic, fmtDate(dayKey())].filter(Boolean).join('\n');
+  const sign = '\n' + [s.name, s.crp ? 'CRP ' + s.crp : '', p.workplace === 'prefeitura' ? 'Prefeitura' : s.clinic, fmtDate(dayKey())].filter(Boolean).join('\n');
   if (r.kind === 'declaracao') return `DECLARAÇÃO DE COMPARECIMENTO\n\nDeclaro que ${p.name} compareceu a ${real} atendimento(s) psicológico(s) no período: ${per}.\n${sign}`;
   const L = [r.kind === 'resumo' ? 'RESUMO DOS ATENDIMENTOS' : 'RELATÓRIO PSICOLÓGICO', '', `Paciente: ${p.name}${p.birthDate ? ' · ' + age(p.birthDate) + ' anos' : ''}`, `Período: ${per}`, `Atendimentos realizados: ${real} · Faltas: ${falt}`];
   if (r.kind === 'relatorio') {
@@ -196,13 +221,15 @@ function buildReport(r) {
 }
 const FORMS = {
   patients: {
-    title: 'Paciente', req: ['name'], init: () => ({ status: 'ativo' }),
-    fields: [['name', 'Nome completo', T], ['birthDate', 'Nascimento', D], ['phone', 'Telefone', T], ['email', 'E-mail', T], ['isMinor', 'Menor de idade (envolve responsáveis)', C], ['guardianName', 'Responsável', T], ['guardianRelation', 'Parentesco', T], ['guardianPhone', 'Telefone do responsável', T], ['occupation', 'Escola / ocupação', T], ['status', 'Situação', S, STPAT], ['notes', 'Observações', A]],
+    title: 'Paciente', req: ['name'], init: () => ({ status: 'ativo', workplace: ui.wp }),
+    fields: [['name', 'Nome completo', T], ['workplace', 'Local de atendimento', S, WPS], ['birthDate', 'Nascimento', D], ['phone', 'Telefone', T], ['email', 'E-mail', T], ['isMinor', 'Menor de idade (envolve responsáveis)', C], ['guardianName', 'Responsável', T], ['guardianRelation', 'Parentesco', T], ['guardianPhone', 'Telefone do responsável', T], ['occupation', 'Escola / ocupação', T], ['status', 'Situação', S, STPAT], ['notes', 'Observações', A]],
+    after: (r) => { ['appointments', 'reminders'].forEach((e) => state[e].filter((x) => x.patientId === r.id && x.workplace !== r.workplace).forEach((x) => { x.workplace = r.workplace; put(e, x); })); },
     sum: (p) => [p.name, lab(STPAT, p.status)],
   },
   appointments: {
     title: 'Agendamento', needsPatient: 1, req: ['patientId', 'date', 'startTime'],
-    init: () => ({ kind: 'sessao', startTime: '09:00', durationMin: state.settings.sessionMin, modality: 'presencial', status: 'agendada', date: ui.day }),
+    init: () => ({ kind: 'sessao', startTime: '09:00', durationMin: state.settings.sessionMin, modality: 'presencial', status: 'agendada', date: ui.day, workplace: ui.wp }),
+    before: (r) => { const p = byId('patients', r.patientId); if (p) r.workplace = p.workplace; },
     fields: [['patientId', 'Paciente', P], ['kind', 'Tipo', S, KINDS], ['date', 'Data', D], ['startTime', 'Horário', H], ['durationMin', 'Duração (min)', N], ['modality', 'Modalidade', S, MODS], ['status', 'Status', S, APST], ['notes', 'Observações', A]],
     check: (r) => {
       if (r.durationMin < 5) return 'Duração inválida';
@@ -258,7 +285,8 @@ const FORMS = {
     sum: (r) => [fmtDate(r.date), lab(REAS, r.reason)],
   },
   reminders: {
-    title: 'Lembrete', req: ['title'], init: () => { const d = new Date(Date.now() + 36e5); return { priority: 'media', done: false, dueDate: dayKey(d.getTime()), dueTime: pad(d.getHours()) + ':00' }; },
+    title: 'Lembrete', req: ['title'], init: () => { const d = new Date(Date.now() + 36e5); return { priority: 'media', done: false, workplace: ui.wp, dueDate: dayKey(d.getTime()), dueTime: pad(d.getHours()) + ':00' }; },
+    before: (r) => { const p = r.patientId && byId('patients', r.patientId); if (p) r.workplace = p.workplace; },
     fields: [['title', 'Lembrete', T], ['patientId', 'Paciente (opcional)', P, 'opt'], ['dueDate', 'Data', D], ['dueTime', 'Hora', H], ['priority', 'Prioridade', S, PRIO], ['notes', 'Observações', A]],
     sum: (r) => [r.title, fmtDate(r.dueDate)],
   },
@@ -275,7 +303,7 @@ const FORMS = {
   },
 };
 const SECTIONS = ['appointments', 'anamneses', 'assessments', 'plans', 'guardianMeetings', 'sessionNotes', 'reevaluations', 'discharges', 'reports'];
-const patientOpts = (opt) => [...(opt ? [['', '— Sem paciente —']] : []), ...[...state.patients].sort((a, b) => a.name.localeCompare(b.name)).map((p) => [p.id, p.name])];
+const patientOpts = (opt) => [...(opt ? [['', '— Sem paciente —']] : []), ...wpPatients().sort((a, b) => a.name.localeCompare(b.name)).map((p) => [p.id, p.name])];
 let inputs = {};
 function openForm(e, rec, pre = {}) {
   const F = FORMS[e];
@@ -372,6 +400,7 @@ function submitForm(ev) {
   tap(12);
   closeSheet();
   toast('Salvo', { type: 'ok' });
+  if (e === 'patients' && r.workplace !== ui.wp) { setWp(r.workplace); toast('Paciente movido para ' + lab(WPS, r.workplace)); }
   if (e === 'patients' && master()) ui.pid = r.id;
   render();
   scan();
@@ -391,7 +420,7 @@ const ORDER = ['agenda', 'patients', 'reminders', 'more'];
 const isSub = (n) => n === 'patient' || n === 'notifs';
 function go(name, pop) {
   if (name === 'patient' && master()) name = 'patients';
-  if (name === 'patients' && master() && !byId('patients', ui.pid)) ui.pid = (sortedPatients()[0] || {}).id || null;
+  if (name === 'patients' && master() && (byId('patients', ui.pid) || {}).workplace !== ui.wp) ui.pid = (sortedPatients()[0] || {}).id || null;
   if (isSub(name) && !isSub(ui.screen)) ui.prev = ui.screen;
   if (isSub(name) && !pop && ui.screen !== name) history.pushState({ s: name }, '');
   $('#app').style.setProperty('--dir', (isSub(ui.screen) && !isSub(name) ? -18 : isSub(name) ? 18 : ORDER.indexOf(name) < ORDER.indexOf(ui.screen) ? -18 : 18) + 'px');
@@ -424,7 +453,8 @@ function render() {
   $('#side-av').textContent = initials(who);
   $('#side-sub').textContent = state.settings.crp ? 'CRP ' + state.settings.crp : state.settings.clinic || 'Consultório';
   $('#top-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const n = state.notifications.filter((x) => !x.read).length;
+  const n = wpNotifs().filter((x) => !x.read).length;
+  $$('#wp-bar button').forEach((b) => { const on = b.dataset.wp === ui.wp; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
   if (navigator.setAppBadge) (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {});
   $$('.js-bell-n').forEach((b) => { b.textContent = n > 9 ? '9+' : n; b.hidden = !n; });
 }
@@ -447,7 +477,7 @@ function rAgenda() {
   $('#hello-name').textContent = state.settings.name || 'Princesa';
   const day = ui.day;
   $('#day-label').textContent = (day === dayKey() ? 'Hoje · ' : '') + new Date(day + 'T00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const L = state.appointments.filter((a) => a.date === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const L = wpAppts().filter((a) => a.date === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
   const act = L.filter((a) => !OFF.includes(a.status));
   const done = L.filter((a) => a.status === 'realizada').length;
   $('#sum-text').textContent = `${act.length} consulta${act.length === 1 ? '' : 's'} no dia`;
@@ -475,11 +505,11 @@ function shiftMonth(n) {
   rSide();
 }
 function rSide(L, nx) {
-  if (!L) { L = state.appointments.filter((a) => a.date === ui.day).sort((a, b) => a.startTime.localeCompare(b.startTime)); nx = nextAppt(L); }
+  if (!L) { L = wpAppts().filter((a) => a.date === ui.day).sort((a, b) => a.startTime.localeCompare(b.startTime)); nx = nextAppt(L); }
   if (ui.calFor !== ui.day) { ui.cal = ui.day.slice(0, 7); ui.calFor = ui.day; }
   const [y, m] = ui.cal.split('-').map(Number);
   $('#cal-title').textContent = new Date(y, m - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  const has = new Set(state.appointments.filter((a) => a.date.startsWith(ui.cal) && !OFF.includes(a.status)).map((a) => a.date));
+  const has = new Set(wpAppts().filter((a) => a.date.startsWith(ui.cal) && !OFF.includes(a.status)).map((a) => a.date));
   const g = $('#cal-grid');
   g.innerHTML = '';
   for (let i = new Date(y, m - 1, 1).getDay(); i > 0; i--) g.append(el('i'));
@@ -499,7 +529,7 @@ function rSide(L, nx) {
   const nu = $('#next-up');
   nu.hidden = !nx;
   if (nx) nu.textContent = `Próxima: ${nx.startTime} · ${pname(nx.patientId)}`;
-  const R = state.reminders.filter((r) => !r.done).sort((a, b) => (a.dueDate || '9').localeCompare(b.dueDate || '9') || a.dueTime.localeCompare(b.dueTime)).slice(0, 5);
+  const R = wpRems().filter((r) => !r.done).sort((a, b) => (a.dueDate || '9').localeCompare(b.dueDate || '9') || a.dueTime.localeCompare(b.dueTime)).slice(0, 5);
   const box = $('#side-rem');
   box.innerHTML = '';
   R.forEach((r) => {
@@ -521,7 +551,7 @@ function pickStatus(a) {
 }
 function rPatients() {
   const q = ui.q.trim().toLowerCase();
-  const L = state.patients.filter((p) => !q || p.name.toLowerCase().includes(q)).sort((a, b) => (a.status === 'encerrado') - (b.status === 'encerrado') || a.name.localeCompare(b.name));
+  const L = wpPatients().filter((p) => !q || p.name.toLowerCase().includes(q)).sort((a, b) => (a.status === 'encerrado') - (b.status === 'encerrado') || a.name.localeCompare(b.name));
   const box = $('#patient-list');
   box.innerHTML = '';
   const t = dayKey();
@@ -588,7 +618,7 @@ function rPatient() {
 }
 function rReminders() {
   const t = dayKey();
-  const L = [...state.reminders].sort((a, b) => a.done - b.done || (a.dueDate || '9').localeCompare(b.dueDate || '9') || a.dueTime.localeCompare(b.dueTime));
+  const L = [...wpRems()].sort((a, b) => a.done - b.done || (a.dueDate || '9').localeCompare(b.dueDate || '9') || a.dueTime.localeCompare(b.dueTime));
   const box = $('#reminder-list');
   box.innerHTML = '';
   L.forEach((r) => {
@@ -605,6 +635,8 @@ function rReminders() {
   $('#reminders-empty').hidden = L.length > 0;
 }
 function openNotif(n) {
+  const w = wpOfRef(n);
+  if (w && w !== ui.wp) setWp(w);
   n.read = true;
   put('notifications', n);
   const a = n.refType === 'appointments' ? byId('appointments', n.refId) : null;
@@ -617,7 +649,7 @@ function openNotif(n) {
 function rNotifs() {
   const box = $('#notif-list');
   box.innerHTML = '';
-  const L = [...state.notifications].sort((a, b) => b.createdAt - a.createdAt);
+  const L = [...wpNotifs()].sort((a, b) => b.createdAt - a.createdAt);
   L.forEach((n) => box.append(item(n.title, n.body, () => openNotif(n), n.read ? '' : 'unread')));
   $('#notif-card').hidden = !L.length;
   $('#notif-empty').hidden = L.length > 0;
@@ -625,8 +657,8 @@ function rNotifs() {
 function rMore() {
   const box = $('#report-list');
   box.innerHTML = '';
-  [...state.reports].sort((a, b) => b.createdAt - a.createdAt).forEach((r) => box.append(item(r.title, pname(r.patientId) + ' · ' + fmtDate(dayKey(r.createdAt)), () => openForm('reports', r))));
-  $('#reports-empty').hidden = state.reports.length > 0;
+  [...wpReports()].sort((a, b) => b.createdAt - a.createdAt).forEach((r) => box.append(item(r.title, pname(r.patientId) + ' · ' + fmtDate(dayKey(r.createdAt)), () => openForm('reports', r))));
+  $('#reports-empty').hidden = wpReports().length > 0;
   $$('[data-setting]').forEach((i) => {
     const v = state.settings[i.dataset.setting];
     if (i.type === 'checkbox') i.checked = !!v; else i.value = v;
@@ -890,6 +922,7 @@ function bindEvents() {
   $('#fab').addEventListener('click', () => { tap(10); fab(); });
   $('#btn-back').addEventListener('click', () => (history.state && history.state.s ? history.back() : go(ui.prev)));
   $$('.js-bell').forEach((b) => b.addEventListener('click', () => go('notifs')));
+  $$('#wp-bar button').forEach((b) => b.addEventListener('click', () => { tap(8); setWp(b.dataset.wp); }));
   $('#day-prev').addEventListener('click', () => { ui.day = addDays(ui.day, -1); rAgenda(); });
   $('#day-next').addEventListener('click', () => { ui.day = addDays(ui.day, 1); rAgenda(); });
   $('#day-label').addEventListener('click', () => { ui.day = dayKey(); rAgenda(); });
@@ -900,7 +933,7 @@ function bindEvents() {
     if (ev.target.closest('[data-act="status"]')) pickStatus(a); else openForm('appointments', a);
   });
   $('#search').addEventListener('input', (ev) => { ui.q = ev.target.value; rPatients(); });
-  $('#notif-readall').addEventListener('click', () => { state.notifications.filter((n) => !n.read).forEach((n) => { n.read = true; put('notifications', n); }); render(); });
+  $('#notif-readall').addEventListener('click', () => { wpNotifs().filter((n) => !n.read).forEach((n) => { n.read = true; put('notifications', n); }); render(); });
   $('#btn-new-report').addEventListener('click', () => openForm('reports'));
   $('#sheet-form').addEventListener('submit', submitForm);
   $('#form-cancel').addEventListener('click', closeSheet);

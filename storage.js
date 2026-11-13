@@ -1,8 +1,8 @@
 const KEY = 'psi.app.v1';
 export const snake = (k) => k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
 export const SCHEMA = {
-  patients: { table: 'patients', d: { status: 'ativo' }, f: { name: 's', birthDate: 'd', phone: 's', email: 's', isMinor: 'b', guardianName: 's', guardianRelation: 's', guardianPhone: 's', occupation: 's', status: 's', notes: 'x' } },
-  appointments: { table: 'appointments', d: { kind: 'sessao', modality: 'presencial', status: 'agendada', durationMin: 50 }, f: { patientId: 'i', kind: 's', date: 'd', startTime: 't', durationMin: 'n', modality: 's', status: 's', notes: 'x' } },
+  patients: { table: 'patients', d: { status: 'ativo', workplace: 'clinica' }, f: { name: 's', workplace: 's', birthDate: 'd', phone: 's', email: 's', isMinor: 'b', guardianName: 's', guardianRelation: 's', guardianPhone: 's', occupation: 's', status: 's', notes: 'x' } },
+  appointments: { table: 'appointments', d: { kind: 'sessao', modality: 'presencial', status: 'agendada', durationMin: 50, workplace: 'clinica' }, f: { patientId: 'i', workplace: 's', kind: 's', date: 'd', startTime: 't', durationMin: 'n', modality: 's', status: 's', notes: 'x' } },
   anamneses: { table: 'anamneses', f: { patientId: 'i', date: 'd', referral: 's', complaint: 'x', complaintHistory: 'x', development: 'x', healthHistory: 'x', familyHistory: 'x', schoolSocial: 'x', previousTreatments: 'x', medications: 'x', expectations: 'x' } },
   assessments: { table: 'assessments', f: { patientId: 'i', date: 'd', instruments: 'x', observation: 'x', emotionalState: 'x', cognitive: 'x', risk: 'x', impressions: 'x', hypotheses: 'x', conclusion: 'x' } },
   plans: { table: 'therapeutic_plans', f: { patientId: 'i', date: 'd', approach: 's', frequency: 's', objective: 'x', goals: 'j', strategies: 'x', notes: 'x' } },
@@ -10,7 +10,7 @@ export const SCHEMA = {
   sessionNotes: { table: 'session_notes', f: { patientId: 'i', appointmentId: 'i', date: 'd', number: 'n', mood: 's', themes: 'x', interventions: 'x', response: 'x', evolution: 'x', nextSteps: 'x', attention: 'b' } },
   reevaluations: { table: 'reevaluations', f: { patientId: 'i', date: 'd', summary: 'x', goalsReview: 'j', progress: 'x', adjustments: 'x', decision: 's' } },
   discharges: { table: 'discharges', f: { patientId: 'i', date: 'd', reason: 's', summary: 'x', outcomes: 'x', recommendations: 'x', referral: 's', followUp: 'x' } },
-  reminders: { table: 'reminders', d: { priority: 'media' }, f: { patientId: 'i', title: 's', notes: 'x', dueDate: 'd', dueTime: 't', priority: 's', done: 'b' } },
+  reminders: { table: 'reminders', d: { priority: 'media', workplace: 'clinica' }, f: { patientId: 'i', workplace: 's', title: 's', notes: 'x', dueDate: 'd', dueTime: 't', priority: 's', done: 'b' } },
   notifications: { table: 'notifications', f: { kind: 's', title: 's', body: 's', refType: 's', refId: 's', read: 'b' } },
   reports: { table: 'reports', f: { patientId: 'i', kind: 's', title: 's', periodStart: 'd', periodEnd: 'd', content: 'x' } },
 };
@@ -31,6 +31,7 @@ export function rec(e, raw) {
     const v = raw[k] === undefined || raw[k] === null || raw[k] === '' ? d[k] : raw[k];
     o[k] = C[f[k]](v);
   }
+  if ('workplace' in f && o.workplace !== 'prefeitura') o.workplace = 'clinica';
   return o;
 }
 const num = (v, a, b, f) => {

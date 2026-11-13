@@ -449,3 +449,12 @@ input,textarea{-webkit-user-select:text;user-select:text}
 .btn,.mini,.dnav button{min-height:44px}
 .field textarea{font-size:16px}
 .ob-t{color:var(--navy);font-size:15px;margin-bottom:14px}
+/* ---- abas de local de atendimento (Prefeitura / Clínica) ---- */
+.wp-bar { display: flex; gap: 8px; padding: 14px 20px 0; }
+.wp-bar button { flex: 1; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--lav); color: var(--deep); font-weight: 700; font-size: 14px; transition: background 0.2s, color 0.2s, transform 0.15s; }
+.wp-bar button.active { background: var(--purple); color: #fff; }
+.wp-bar button:active { transform: scale(0.96); }
+#app[data-screen="agenda"] .wp-bar { padding-top: calc(var(--safe-top) + 14px); }
+#app[data-screen="agenda"] .wp-bar button { background: rgba(255, 255, 255, 0.22); color: #fff; }
+#app[data-screen="agenda"] .wp-bar button.active { background: #fff; color: var(--deep); }
+#app[data-screen="agenda"] .hero { padding-top: 22px; }
