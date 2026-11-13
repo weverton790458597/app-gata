@@ -92,12 +92,13 @@ const fromRow = (e, row) => {
   Object.keys(SCHEMA[e].f).forEach((k) => { raw[k] = row[snake(k)]; });
   return rec(e, raw);
 };
+const fixName = (n) => String(n || '').replace(/\bDoutora\b\.?/gi, 'Princesa').trim();
 const settingsRow = (s) => ({
   user_id: session.user_id, name: s.name || '', crp: s.crp || '', clinic: s.clinic || '',
   session_min: s.sessionMin, notify_min: s.notifyMin, sound: !!s.sound, vibrate: !!s.vibrate,
 });
 const rowSettings = (r) => ({
-  name: (r.name || '').replace(/^Doutora$/i, 'Princesa'), crp: r.crp || '', clinic: r.clinic || '',
+  name: fixName(r.name), crp: r.crp || '', clinic: r.clinic || '',
   sessionMin: r.session_min == null ? 50 : r.session_min,
   notifyMin: r.notify_min == null ? 30 : r.notify_min,
   sound: r.sound !== false, vibrate: r.vibrate !== false,
@@ -168,7 +169,12 @@ async function sync() {
     }
     if (!meta.settings) {
       const s = await rest('settings?select=*&limit=1');
-      if (s && s[0]) { ctx.setSettings(rowSettings(s[0])); changed = true; }
+      if (s && s[0]) {
+        const ns = rowSettings(s[0]);
+        ctx.setSettings(ns);
+        changed = true;
+        if ((s[0].name || '') !== ns.name) { meta.settings = true; again = true; }
+      }
     }
     meta.lastSync = Date.now();
     saveMeta();
