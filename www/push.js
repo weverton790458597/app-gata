@@ -1,6 +1,6 @@
 import { Cloud } from './cloud.js';
 // Cole aqui a chave PÚBLICA VAPID (npx web-push generate-vapid-keys)
-const VAPID_PUBLIC_KEY = 'COLE_AQUI_A_CHAVE_PUBLICA_VAPID';
+const VAPID_PUBLIC_KEY = 'BHfp8nbGG_2uiwUziqvJM8BxcOwYA9AmKsHISjRiAu7lfnOGec0Xp_j99JlmwrnF7C8EHm8ksfVsJmT0NoWYuk8';
 const KEY = 'psi.push.v1';
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
 const write = (v) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} };
