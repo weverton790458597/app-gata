@@ -39,10 +39,18 @@ const DECS = [['manter', 'Manter plano'], ['ajustar', 'Ajustar metas'], ['alta',
 const REAS = [['alta', 'Alta (objetivos atingidos)'], ['abandono', 'Abandono'], ['encaminhamento', 'Encaminhamento'], ['responsaveis', 'Decisão dos responsáveis'], ['outro', 'Outro']];
 const RKIND = [['relatorio', 'Relatório clínico'], ['resumo', 'Resumo dos atendimentos'], ['declaracao', 'Declaração de comparecimento']];
 const OFF = ['cancelada', 'remarcada'];
-const TITLES = { agenda: 'Agenda', patients: 'Pacientes', reminders: 'Lembretes', more: 'Mais', patient: 'Paciente', notifs: 'Notificações' };
+const TITLES = { agenda: 'Agenda', patients: 'Pacientes', reminders: 'Lembretes', more: 'Ajustes', patient: 'Paciente', notifs: 'Notificações' };
 const T = 'text', A = 'area', D = 'date', H = 'time', N = 'num', S = 'sel', P = 'pat', C = 'chk';
 let state = Storage.load();
-const ui = { screen: 'agenda', prev: 'agenda', day: dayKey(), pid: null, q: '', exp: new Set(), form: null };
+const ui = { screen: 'agenda', prev: 'agenda', day: dayKey(), pid: null, q: '', exp: new Set(), form: null, cal: '', calFor: '' };
+// Layout horizontal: SHELL = barra lateral (PC / paisagem); WIDE = lista + detalhe lado a lado.
+const MQ_SHELL = window.matchMedia('(min-width: 1000px), (orientation: landscape) and (min-width: 640px)');
+const MQ_WIDE = window.matchMedia('(min-width: 1000px), (orientation: landscape) and (min-width: 840px)');
+const master = () => MQ_WIDE.matches;
+const initials = (n) => { const w = String(n || '').trim().split(/\s+/).filter(Boolean); return ((w[0] || '?')[0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); };
+const avatar = (n, c = '') => el('span', 'av' + (c ? ' ' + c : ''), initials(n));
+const FABL = { agenda: 'Nova consulta', patients: 'Novo paciente', patient: 'Nova consulta', reminders: 'Novo lembrete', notifs: 'Novo lembrete', more: 'Novo relatório' };
+const sortedPatients = () => [...state.patients].sort((a, b) => (a.status === 'encerrado') - (b.status === 'encerrado') || a.name.localeCompare(b.name));
 const byId = (e, id) => state[e].find((x) => x.id === id);
 const pname = (id) => (byId('patients', id) || { name: '—' }).name;
 const mine = (e, pid) => state[e].filter((x) => x.patientId === pid);
@@ -364,6 +372,7 @@ function submitForm(ev) {
   tap(12);
   closeSheet();
   toast('Salvo', { type: 'ok' });
+  if (e === 'patients' && master()) ui.pid = r.id;
   render();
   scan();
 }
@@ -381,12 +390,14 @@ async function deleteForm() {
 const ORDER = ['agenda', 'patients', 'reminders', 'more'];
 const isSub = (n) => n === 'patient' || n === 'notifs';
 function go(name, pop) {
+  if (name === 'patient' && master()) name = 'patients';
+  if (name === 'patients' && master() && !byId('patients', ui.pid)) ui.pid = (sortedPatients()[0] || {}).id || null;
   if (isSub(name) && !isSub(ui.screen)) ui.prev = ui.screen;
   if (isSub(name) && !pop && ui.screen !== name) history.pushState({ s: name }, '');
   $('#app').style.setProperty('--dir', (isSub(ui.screen) && !isSub(name) ? -18 : isSub(name) ? 18 : ORDER.indexOf(name) < ORDER.indexOf(ui.screen) ? -18 : 18) + 'px');
   ui.screen = name;
   $('#app').dataset.screen = name;
-  $$('.screen').forEach((s) => s.classList.toggle('active', s.id === 'screen-' + name));
+  $$('.screen').forEach((s) => s.classList.toggle('active', s.id === 'screen-' + name || (name === 'patients' && master() && s.id === 'screen-patient')));
   const nav = name === 'patient' ? 'patients' : name;
   $$('.nav button[data-go]').forEach((b) => {
     const on = b.dataset.go === nav;
@@ -395,12 +406,24 @@ function go(name, pop) {
   });
   $('#btn-back').hidden = !(name === 'patient' || name === 'notifs');
   $('#screen-title').textContent = TITLES[name];
+  const fl = $('#fab .lbl');
+  if (fl) fl.textContent = FABL[name] || 'Novo';
   $('#main').scrollTo({ top: 0 });
   render();
 }
-function openPatient(id) { ui.pid = id; go('patient'); }
+function openPatient(id) {
+  ui.pid = id;
+  go(master() ? 'patients' : 'patient');
+  if (master()) $('#screen-patient').scrollTop = 0;
+}
 function render() {
   ({ agenda: rAgenda, patients: rPatients, reminders: rReminders, more: rMore, patient: rPatient, notifs: rNotifs })[ui.screen]();
+  if (ui.screen === 'patients' && master()) rPatient();
+  const who = state.settings.name || 'Doutora';
+  $('#side-name').textContent = who;
+  $('#side-av').textContent = initials(who);
+  $('#side-sub').textContent = state.settings.crp ? 'CRP ' + state.settings.crp : state.settings.clinic || 'Consultório';
+  $('#top-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
   const n = state.notifications.filter((x) => !x.read).length;
   if (navigator.setAppBadge) (n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(() => {});
   $$('.js-bell-n').forEach((b) => { b.textContent = n > 9 ? '9+' : n; b.hidden = !n; });
@@ -408,6 +431,7 @@ function render() {
 function apptEl(a) {
   const li = el('li', 'appt');
   li.dataset.id = a.id;
+  li.dataset.s = a.status;
   const tm = el('div', 'tm', a.startTime || '--:--');
   tm.append(el('small', '', a.durationMin + ' min'));
   const bd = el('div', 'bd');
@@ -432,7 +456,57 @@ function rAgenda() {
   const ul = $('#appt-list');
   ul.innerHTML = '';
   L.forEach((a) => ul.append(apptEl(a)));
+  const nx = nextAppt(L);
+  const nli = nx && ul.querySelector(`[data-id="${nx.id}"]`);
+  if (nli) nli.classList.add('next');
   $('#appt-empty').hidden = L.length > 0;
+  rSide(L, nx);
+}
+function nextAppt(L) {
+  if (ui.day !== dayKey()) return null;
+  const d = new Date();
+  const nm = d.getHours() * 60 + d.getMinutes();
+  return L.find((a) => (a.status === 'agendada' || a.status === 'confirmada') && toMin(a.startTime) + a.durationMin > nm) || null;
+}
+function shiftMonth(n) {
+  const [y, m] = ui.cal.split('-').map(Number);
+  const d = new Date(y, m - 1 + n, 1);
+  ui.cal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+  rSide();
+}
+function rSide(L, nx) {
+  if (!L) { L = state.appointments.filter((a) => a.date === ui.day).sort((a, b) => a.startTime.localeCompare(b.startTime)); nx = nextAppt(L); }
+  if (ui.calFor !== ui.day) { ui.cal = ui.day.slice(0, 7); ui.calFor = ui.day; }
+  const [y, m] = ui.cal.split('-').map(Number);
+  $('#cal-title').textContent = new Date(y, m - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const has = new Set(state.appointments.filter((a) => a.date.startsWith(ui.cal) && !OFF.includes(a.status)).map((a) => a.date));
+  const g = $('#cal-grid');
+  g.innerHTML = '';
+  for (let i = new Date(y, m - 1, 1).getDay(); i > 0; i--) g.append(el('i'));
+  const today = dayKey();
+  for (let d = 1, n = new Date(y, m, 0).getDate(); d <= n; d++) {
+    const k = `${y}-${pad(m)}-${pad(d)}`;
+    const b = el('button', 'cd' + (k === ui.day ? ' sel' : '') + (k === today ? ' today' : '') + (has.has(k) ? ' has' : ''), d);
+    b.type = 'button';
+    b.dataset.d = k;
+    g.append(b);
+  }
+  const act = L.filter((a) => !OFF.includes(a.status));
+  $('#sx-total').textContent = act.length;
+  $('#sx-pend').textContent = act.filter((a) => a.status === 'agendada' || a.status === 'confirmada').length;
+  $('#sx-done').textContent = L.filter((a) => a.status === 'realizada').length;
+  $('#sx-miss').textContent = L.filter((a) => a.status === 'faltou').length;
+  const nu = $('#next-up');
+  nu.hidden = !nx;
+  if (nx) nu.textContent = `Próxima: ${nx.startTime} · ${pname(nx.patientId)}`;
+  const R = state.reminders.filter((r) => !r.done).sort((a, b) => (a.dueDate || '9').localeCompare(b.dueDate || '9') || a.dueTime.localeCompare(b.dueTime)).slice(0, 5);
+  const box = $('#side-rem');
+  box.innerHTML = '';
+  R.forEach((r) => {
+    const over = r.dueDate && r.dueDate < today;
+    box.append(item(r.title, [r.dueDate ? (over ? 'Atrasado · ' : '') + (r.dueDate === today ? 'Hoje' : fmtDate(r.dueDate)) + (r.dueTime ? ' ' + r.dueTime : '') : 'Sem data', r.patientId ? pname(r.patientId) : ''].filter(Boolean).join(' · '), () => openForm('reminders', r), over ? 'late' : ''));
+  });
+  $('#side-rem-empty').hidden = R.length > 0;
 }
 function pickStatus(a) {
   openPicker('Status da consulta', APST.map(([v, l]) => ({ v, l, sel: a.status === v })), (v) => {
@@ -454,20 +528,33 @@ function rPatients() {
   L.forEach((p) => {
     const nx = state.appointments.filter((a) => a.patientId === p.id && a.date >= t && !OFF.includes(a.status)).sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime))[0];
     const sub = [lab(STPAT, p.status), p.birthDate ? age(p.birthDate) + ' anos' : '', nx ? 'Próx.: ' + fmtDate(nx.date) + ' ' + nx.startTime : ''].filter(Boolean).join(' · ');
-    box.append(item(p.name, sub, () => openPatient(p.id)));
+    const b = item(p.name, sub, () => openPatient(p.id), master() && p.id === ui.pid ? 'sel' : '');
+    b.prepend(avatar(p.name));
+    box.append(b);
   });
   $('#patient-card').hidden = !L.length;
   $('#patients-empty').hidden = L.length > 0;
 }
 function rPatient() {
   const p = byId('patients', ui.pid);
-  if (!p) { go('patients'); return; }
-  $('#screen-title').textContent = p.name;
   const box = $('#patient-body');
+  if (!p) {
+    if (!master()) { go('patients'); return; }
+    box.innerHTML = '';
+    const ph = el('div', 'empty detail-empty');
+    const ic = svg('i-user');
+    ic.classList.add('big-ic');
+    ph.append(ic, el('p', 'empty-t', state.patients.length ? 'Selecione um paciente' : 'Nenhum paciente cadastrado'), el('p', 'empty-s', state.patients.length ? 'Escolha um nome na lista para ver o prontuário.' : 'Use o botão “Novo paciente” para começar.'));
+    box.append(ph);
+    return;
+  }
+  if (!master()) $('#screen-title').textContent = p.name;
   box.innerHTML = '';
-  const head = el('div', 'card glass');
-  head.append(el('div', 'card-h', p.name), el('div', 'row-s', [lab(STPAT, p.status), p.birthDate ? `${age(p.birthDate)} anos (${fmtDate(p.birthDate)})` : '', p.phone, p.email].filter(Boolean).join(' · ')));
-  if (p.guardianName) head.append(el('div', 'row-s', 'Responsável: ' + p.guardianName + (p.guardianRelation ? ` (${p.guardianRelation})` : '') + (p.guardianPhone ? ' · ' + p.guardianPhone : '')));
+  const head = el('div', 'card glass pat-head');
+  const pi = el('div', 'pi');
+  pi.append(el('div', 'card-h', p.name), el('div', 'row-s', [lab(STPAT, p.status), p.birthDate ? `${age(p.birthDate)} anos (${fmtDate(p.birthDate)})` : '', p.phone, p.email].filter(Boolean).join(' · ')));
+  if (p.guardianName) pi.append(el('div', 'row-s', 'Responsável: ' + p.guardianName + (p.guardianRelation ? ` (${p.guardianRelation})` : '') + (p.guardianPhone ? ' · ' + p.guardianPhone : '')));
+  head.append(avatar(p.name, 'lg'), pi);
   const acts = el('div', 'btn-grid');
   [['Agendar', () => openForm('appointments', null, { patientId: p.id })], ['Editar', () => openForm('patients', p)], ['Relatório', () => openForm('reports', null, { patientId: p.id })]].forEach(([l, f]) => {
     const b = el('button', 'btn light', l);
@@ -679,6 +766,8 @@ function renderCloud() {
   $('#cloud-in').hidden = !on;
   const labels = { unconfigured: 'Não configurado', out: 'Desconectado', idle: 'Conectado', syncing: 'Sincronizando…', ok: 'Sincronizado', offline: 'Sem conexão', error: 'Erro ao sincronizar' };
   $('#cloud-status').textContent = labels[st.state] || '';
+  const dot = $('#side-dot');
+  if (dot) { dot.dataset.s = st.state; dot.title = labels[st.state] || ''; }
   $('#cl-who').textContent = Cloud.email();
   if ($('#push-btn')) renderPush();
   const last = Cloud.lastSync();
@@ -817,7 +906,23 @@ function bindEvents() {
   $('#form-cancel').addEventListener('click', closeSheet);
   $('#form-del').addEventListener('click', deleteForm);
   $('#backdrop').addEventListener('click', closeSheet);
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeSheet(); });
+  $('#cal-prev').addEventListener('click', () => shiftMonth(-1));
+  $('#cal-next').addEventListener('click', () => shiftMonth(1));
+  $('#cal-grid').addEventListener('click', (ev) => { const b = ev.target.closest('[data-d]'); if (b) { ui.day = b.dataset.d; rAgenda(); } });
+  $('#side-rem-all').addEventListener('click', () => go('reminders'));
+  $('#side-me').addEventListener('click', () => go('more'));
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') { closeSheet(); return; }
+    if (!MQ_SHELL.matches || ev.metaKey || ev.ctrlKey || ev.altKey || openSheetEl || $('#dialog').classList.contains('open')) return;
+    if (ev.target.closest && ev.target.closest('input,textarea,select')) return;
+    const k = ev.key;
+    const dest = { 1: 'agenda', 2: 'patients', 3: 'reminders', 4: 'more' }[k];
+    if (dest) go(dest);
+    else if (k === 'n' || k === 'N') { ev.preventDefault(); fab(); }
+    else if (k === '/') { ev.preventDefault(); go('patients'); setTimeout(() => $('#search').focus(), 0); }
+    else if (ui.screen === 'agenda' && (k === 'ArrowLeft' || k === 'ArrowRight')) { ui.day = addDays(ui.day, k === 'ArrowRight' ? 1 : -1); rAgenda(); }
+    else if (ui.screen === 'agenda' && (k === 't' || k === 'T')) { ui.day = dayKey(); rAgenda(); }
+  });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scan(); });
   window.addEventListener('pagehide', () => Storage.save(state));
   bindSettings();
@@ -829,6 +934,8 @@ function init() {
   go('agenda');
   startCloud();
   scan();
-  setInterval(scan, 60000);
+  const relayout = () => go(ui.screen === 'patient' && master() ? 'patients' : ui.screen, true);
+  [MQ_SHELL, MQ_WIDE].forEach((m) => (m.addEventListener ? m.addEventListener('change', relayout) : m.addListener(relayout)));
+  setInterval(() => { scan(); if (MQ_SHELL.matches && ui.screen === 'agenda' && !openSheetEl) rAgenda(); }, 60000);
 }
 init();
