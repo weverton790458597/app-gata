@@ -222,16 +222,18 @@
   <div class="sheet" id="sheet-import" aria-hidden="true">
     <div class="grabber"></div>
     <h2>Importar paciente</h2>
-    <p class="ob-t">1) Toque em “Copiar modelo”. 2) Cole no ChatGPT ou Gemini e anexe a foto do documento. 3) Cole aqui o JSON que ele devolver (ou escolha o arquivo).</p>
-    <div class="btn-grid">
-      <button class="btn light" id="imp-copy" type="button"><svg class="ic"><use href="#i-copy"/></svg>Copiar modelo</button>
-      <button class="btn light" id="imp-file" type="button"><svg class="ic"><use href="#i-upload"/></svg>Escolher arquivo</button>
-    </div>
+    <p class="ob-t">1) Toque em “Enviar para minha IA” e escolha o ChatGPT, Gemini ou Claude. 2) Na IA, tire ou anexe a foto do documento e baixe o arquivo .json que ela entregar. 3) Volte aqui e toque em “Escolher arquivo JSON”.</p>
+    <button class="btn primary wide mb" id="imp-share" type="button"><svg class="ic"><use href="#i-upload"/></svg>Enviar para minha IA</button>
+    <button class="btn light wide mb" id="imp-file" type="button"><svg class="ic"><use href="#i-download"/></svg>Escolher arquivo JSON</button>
     <input type="file" id="imp-file-in" accept="application/json,.json,text/plain,.txt" hidden>
-    <label class="field"><span>JSON do paciente</span><textarea id="imp-text" rows="9" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder='{ "schema": "psi-paciente-v1", "name": "...", ... }'></textarea></label>
+    <details class="imp-alt">
+      <summary>Colar o JSON manualmente / copiar instruções</summary>
+      <button class="btn light wide mt mb" id="imp-copy" type="button"><svg class="ic"><use href="#i-copy"/></svg>Copiar instruções</button>
+      <label class="field"><span>JSON do paciente</span><textarea id="imp-text" rows="8" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder='{ "schema": "psi-paciente-v1", "name": "...", ... }'></textarea></label>
+      <button type="button" class="btn primary wide" id="imp-go">Preencher formulário</button>
+    </details>
     <div class="sheet-actions">
-      <button type="button" class="btn soft" id="imp-cancel">Cancelar</button>
-      <button type="button" class="btn primary" id="imp-go">Preencher formulário</button>
+      <button type="button" class="btn soft" id="imp-cancel">Fechar</button>
     </div>
   </div>
   <div class="sheet" id="sheet-onboard" aria-hidden="true">

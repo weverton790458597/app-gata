@@ -534,3 +534,10 @@ html:not(.authed) #app, html:not(.authed) .backdrop, html:not(.authed) .sheet { 
 .appt .ck[aria-pressed="true"]::after{content:"";position:absolute;left:8px;top:3px;width:6px;height:12px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
 .appt[data-s="realizada"] .nm,.appt[data-done="1"] .nm{opacity:.55;text-decoration:line-through}
 .appt[data-s="cancelada"],.appt[data-s="remarcada"]{opacity:.6}
+
+/* Importar paciente (JSON) */
+.imp-alt{margin:4px 0 14px}
+.imp-alt>summary{cursor:pointer;color:var(--gray);font-size:13px;font-weight:600;padding:8px 6px;list-style:none}
+.imp-alt>summary::-webkit-details-marker{display:none}
+.imp-alt[open]>summary{margin-bottom:6px}
+.imp-alt textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
