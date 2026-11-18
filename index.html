@@ -222,10 +222,11 @@
   <div class="sheet" id="sheet-import" aria-hidden="true">
     <div class="grabber"></div>
     <h2>Importar paciente</h2>
-    <p class="ob-t">1) Toque em “Enviar para minha IA” e escolha o ChatGPT, Gemini ou Claude. 2) Na IA, tire ou anexe a foto do documento e baixe o arquivo .json que ela entregar. 3) Volte aqui e toque em “Escolher arquivo JSON”.</p>
+    <p class="ob-t">1) Toque em “Enviar para minha IA” e escolha ChatGPT, Gemini ou Claude. 2) Na IA, tire ou anexe a foto e, quando o JSON aparecer, toque no ícone de <b>copiar</b>. 3) Volte aqui e toque em “Colar JSON copiado”.</p>
     <button class="btn primary wide mb" id="imp-share" type="button"><svg class="ic"><use href="#i-upload"/></svg>Enviar para minha IA</button>
-    <button class="btn light wide mb" id="imp-file" type="button"><svg class="ic"><use href="#i-download"/></svg>Escolher arquivo JSON</button>
-    <input type="file" id="imp-file-in" accept="application/json,.json,text/plain,.txt" hidden>
+    <button class="btn primary wide mb" id="imp-paste" type="button"><svg class="ic"><use href="#i-copy"/></svg>Colar JSON copiado</button>
+    <button class="btn light wide mb" id="imp-file" type="button"><svg class="ic"><use href="#i-download"/></svg>Ou escolher um arquivo</button>
+    <input type="file" id="imp-file-in" hidden>
     <details class="imp-alt">
       <summary>Colar o JSON manualmente / copiar instruções</summary>
       <button class="btn light wide mt mb" id="imp-copy" type="button"><svg class="ic"><use href="#i-copy"/></svg>Copiar instruções</button>

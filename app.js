@@ -1091,7 +1091,7 @@ const fab = () => ({
 })[ui.screen]();
 // ---------- Importar paciente por JSON (gerado por ChatGPT/Gemini a partir de foto) ----------
 const IMP_TEMPLATE = { schema: 'psi-paciente-v1', name: '', birthDate: '', phone: '', email: '', isMinor: false, guardianName: '', guardianRelation: '', guardianPhone: '', occupation: '', workplace: '', status: '', notes: '' };
-const IMP_PROMPT = `Vou anexar a foto (ou imagem) de uma ficha/documento cadastral de um paciente. Leia o documento e ENTREGUE O RESULTADO COMO UM ARQUIVO PARA DOWNLOAD chamado paciente.json (tipo application/json), contendo APENAS um JSON válido na estrutura abaixo, sem comentários. Se você não conseguir gerar arquivo para download, responda somente com o JSON dentro de um bloco de código, sem nenhum outro texto.
+const IMP_PROMPT = `Vou anexar a foto (ou imagem) de uma ficha/documento cadastral de um paciente. Leia o documento e responda SOMENTE com um JSON válido, dentro de um único bloco de código (para eu tocar em copiar), na estrutura abaixo. Não gere arquivo, não escreva nenhum texto antes ou depois e não faça comentários dentro do JSON.
 
 Regras:
 - Preencha somente o que estiver legível no documento. O que não constar, deixe "" (e false em isMinor). NUNCA invente dados.
@@ -1158,11 +1158,24 @@ async function copyImpText() {
   try { await navigator.clipboard.writeText(impText()); toast('Instruções copiadas. Cole na sua IA e anexe a foto', { type: 'ok', duration: 4500 }); }
   catch (e) { $('#imp-text').value = impText(); const d = $('.imp-alt'); if (d) d.open = true; toast('Cópia bloqueada: as instruções foram colocadas na caixa, copie de lá', { type: 'err', duration: 5000 }); }
 }
+async function pasteImport() {
+  let t = '';
+  try { t = await navigator.clipboard.readText(); } catch (e) { t = null; }
+  if (t == null) {
+    const d = $('.imp-alt'); if (d) d.open = true;
+    $('#imp-text').focus();
+    toast('O celular bloqueou a leitura. Cole o JSON na caixa e toque em Preencher', { type: 'err', duration: 5000 });
+    return;
+  }
+  if (!t.trim()) { toast('Nada copiado ainda. Na IA, toque no ícone de copiar da resposta', { type: 'err', duration: 4500 }); return; }
+  $('#imp-text').value = t;
+  runImport();
+}
 async function shareToAi() {
   if (!navigator.share) { await copyImpText(); return; }
   try {
     await navigator.share({ title: 'Cadastro de paciente', text: impText() });
-    toast('Na IA: anexe a foto e baixe o arquivo .json. Depois volte aqui', { type: 'ok', duration: 6000 });
+    toast('Na IA: anexe a foto, espere o JSON e toque em copiar. Depois volte aqui', { type: 'ok', duration: 6000 });
   } catch (e) {
     if (e && e.name === 'AbortError') return;
     await copyImpText();
@@ -1174,11 +1187,13 @@ function bindImport() {
   $('#imp-go').addEventListener('click', runImport);
   $('#imp-copy').addEventListener('click', copyImpText);
   $('#imp-share').addEventListener('click', shareToAi);
+  $('#imp-paste').addEventListener('click', pasteImport);
   $('#imp-file').addEventListener('click', () => $('#imp-file-in').click());
   $('#imp-file-in').addEventListener('change', async (ev) => {
     const f = ev.target.files && ev.target.files[0];
     ev.target.value = '';
     if (!f) return;
+    if (f.size > 2e6) { toast('Esse arquivo não parece um JSON de paciente', { type: 'err' }); return; }
     try { $('#imp-text').value = await f.text(); } catch (e) { toast('Não consegui ler o arquivo', { type: 'err' }); return; }
     runImport();
   });
